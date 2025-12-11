@@ -1,0 +1,47 @@
+/* ---------- footer ---------- */
+.gov-footer {
+  /* background: linear-gradient(
+    to top,
+    var(--top-color) 0%,
+    var(--meet-color) 70%
+  ); */
+  /* background-color: #eae9e9a0; */
+  background: linear-gradient(
+    to top,
+    rgba(8, 240, 93, 0.75) 0%,
+    rgba(255, 255, 255, 1) 100%
+  );
+
+  padding: 40px 60px;
+  /* ensure footer sits after hero and visually continues */
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.04);
+}
+.footer-columns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 40px;
+  margin-bottom: 18px;
+}
+.footer-columns ul {
+  list-style: none;
+}
+.footer-columns ul li {
+  margin-bottom: 10px;
+}
+.footer-columns ul li a {
+  text-decoration: none;
+  color: #575757;
+  font-size: 15px;
+  transition: 0.15s;
+}
+.footer-columns ul li a:hover {
+  color: #333;
+  text-decoration: underline;
+}
+.footer-note {
+  text-align: center;
+  color: #333;
+  font-size: 14px;
+  margin-top: 10px;
+  line-height: 1.6;
+}

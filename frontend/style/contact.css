@@ -1,0 +1,83 @@
+/* CONTACT SECTION  */
+.contact-container {
+  margin-top: 40px;
+  padding: 40px 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 50px;
+}
+
+/* LEFT SIDE */
+.left-box {
+  width: 45%;
+}
+
+.left-box h2 {
+  font-size: 45px;
+  font-weight: 700;
+}
+
+.pink {
+  color: #ff6b6b;
+}
+
+.left-box p {
+  margin-top: 15px;
+  color: #444;
+  max-width: 450px;
+}
+
+.contact-info {
+  margin-top: 25px;
+  font-size: 15px;
+}
+
+/* RIGHT SIDE FORM */
+.right-box {
+  width: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 30px;
+  border-radius: 16px;
+  /* backdrop-filter: blur(5px); */
+  background: rgba(255, 255, 255, 0.7);
+  /* backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%); */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.right-box h3 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+form input,
+form textarea {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+}
+
+.submit-btn {
+  width: 100%;
+  background: black;
+  /* background: rgb(0, 166, 255); */
+  color: white;
+  padding: 14px;
+  border-radius: 40px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.submit-btn:hover {
+  background: rgb(0, 166, 255);
+  opacity: 0.8;
+}
