@@ -1,0 +1,48 @@
+.about-section {
+  min-height: 100vh;
+  padding: 60px 20px;
+  text-align: center;
+  background: radial-gradient(circle at top right, #dff5d8, #ffffff);
+  position: relative;
+}
+
+.about-section h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.title-line {
+  width: 120px;
+  height: 4px;
+  background: #000;
+  margin: 0 auto 30px;
+  border-radius: 4px;
+}
+
+.about-box {
+  max-width: 850px;
+  margin: auto;
+  background: #ffffff;
+  padding: 25px 30px;
+  border-radius: 10px;
+  border: 2px solid #7a5cff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.about-box p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #333;
+}
+
+.about-cta {
+  margin: 50px auto 0;
+  background: #3f3f3f;
+  color: #fff;
+  padding: 18px 40px;
+  border-radius: 16px;
+  font-size: 26px;
+  font-weight: 700;
+  width: fit-content;
+}

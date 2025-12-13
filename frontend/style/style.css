@@ -166,16 +166,18 @@ body {
 
 /* left column */
 .left {
-  width: 48%;
+  width: 100%;
 }
 .left h1 {
   font-size: 64px;
-  line-height: 0.9;
+  line-height: 1.1;
   font-weight: 800;
   letter-spacing: 1px;
 }
 .pink {
-  color: var(--accent);
+  background: linear-gradient(90deg, #006c18, #00b4a6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .description {
   margin-top: 18px;
