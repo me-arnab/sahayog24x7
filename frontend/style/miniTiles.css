@@ -1,0 +1,111 @@
+/* Mini tiles */
+.hero-mini-tiles {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.mini-tile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 24px;
+
+  /* glass effect */
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  /* glow */
+  box-shadow: 0 0 12px rgba(0, 255, 150, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f3d2e;
+
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mini-tile span {
+  white-space: nowrap;
+}
+
+.mini-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 20px rgba(0, 255, 150, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+/*  glowing bar */
+.hero-divider {
+  width: 120px;
+  height: 3px;
+  margin: 16px auto 28px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #00c853, #ff9800, #00c853);
+  background-size: 200% 100%;
+  animation: glowMove 3s linear infinite;
+}
+
+@keyframes glowMove {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+/* Hero h1 popin on load effect */
+.hero h1 span {
+  animation: popIn 0.8s ease forwards;
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Register button animation */
+.hero-inner .left a {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hero-inner .left a:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* Blurs */
+.hero-blur {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  z-index: 0;
+}
+
+.hero-blur.one {
+  width: 260px;
+  height: 260px;
+  background: #00c853;
+  top: 20%;
+  left: 10%;
+}
+
+.hero-blur.two {
+  width: 300px;
+  height: 300px;
+  background: #ff9800;
+  bottom: 15%;
+  right: 10%;
+}

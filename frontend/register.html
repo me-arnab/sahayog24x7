@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>User Registration</title>
+<!-- CSS -->
+<link rel="stylesheet" href="./style/register.css">
+<!-- Favicon -->
+<link rel="icon" href="/frontend/assets/logo.png" type="image/x-icon">
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=Geom:ital,wght@0,300..900;1,300..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+  rel="stylesheet">
+</head>
+
+<body>
+ <img src="./assets/asset_2.png" alt="asset_1" class="bg-image-1">
+<div class="container">
+ <div class="glass-header">
+  <h2>Create Your Account</h2>
+  <p>Please fill in the details below to register</p>
+  <div class="header-divider"></div>
+</div>
+
+  <div id="error" class="error"></div>
+
+  <form onsubmit="registerUser(event)">
+    
+    <label>Full Name</label>
+    <input type="text" id="name" required>
+
+    <label>Consumer ID *</label>
+    <input type="text" id="consumerId" placeholder="e.g., CON123456" required>
+
+    <label>Email Address</label>
+    <input type="email" id="email" required>
+
+    <label>Mobile Number</label>
+    <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX" required>
+
+    <label>Password</label>
+    <input type="password" id="password" required>
+
+    <label>Confirm Password</label>
+    <input type="password" id="confirmPassword" required>
+
+    <button type="submit">Register</button>
+  </form>
+
+  <div class="link">
+    Already have an account? <a href="./index.html">Login</a>
+  </div>
+</div>
+
+<script>
+function registerUser(e) {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value.trim();
+  const consumerId = document.getElementById("consumerId").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+  const error = document.getElementById("error");
+
+  error.textContent = "";
+
+  if (!consumerId) {
+    error.textContent = "Consumer ID is required!";
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    error.textContent = "Passwords do not match!";
+    return;
+  }
+
+  if (password.length < 6) {
+    error.textContent = "Password must be at least 6 characters long!";
+    return;
+  }
+
+  // Simulated successful registration
+  alert("Registration successful!\nConsumer ID: " + consumerId);
+
+  document.querySelector("form").reset();
+}
+</script>
+
+</body>
+</html>

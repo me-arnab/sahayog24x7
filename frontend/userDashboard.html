@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electricity Complaints Dashboard - Fully Functional</title>
+    <link rel="stylesheet" href="./style/dashboard.css">
+    <!-- Favicon -->
+    <link rel="icon" href="/frontend/assets/logo.png" type="image/x-icon">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geom:ital,wght@0,300..900;1,300..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+
+</head>
+
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="logo">
+                <img src="/frontend/assets/logo.png" class="logo-icon" alt="logo">
+                <span class="logo-text">Sahayog</span>
+                <span class="logo-text-24">24</span>
+                <span class="logo-text-x">x</span>
+                <span class="logo-text-7">7</span>
+            </div> 
+            <div class="nav-tabs">
+                <button class="nav-tab"><a href="./index.html" style="text-decoration: none;">Home</a></button>
+                <button class="nav-tab active" onclick="switchDashboard('user')">👤 User Dashboard</button>
+                <!-- <button class="nav-tab" onclick="switchDashboard('admin')">👨‍💼 Admin Dashboard</button> -->
+            </div>
+        </nav>
+
+        <!-- USER DASHBOARD -->
+        <div id="user-dashboard" class="dashboard active">
+            <!-- Stats Cards -->
+            <div class="user-stats">
+                <div class="stat-card" onclick="showUserStats('total')">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-number" id="user-total-complaints">5</div>
+                    <div class="stat-label">Total Complaints</div>
+                </div>
+                <div class="stat-card" onclick="showUserStats('pending')">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-number" id="user-pending">2</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat-card" onclick="showUserStats('resolved')">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-number" id="user-resolved">3</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-number">4.2</div>
+                    <div class="stat-label">Avg Rating</div>
+                </div>
+            </div>
+
+            <!-- My Complaints -->
+            <div class="my-complaints">
+                <h2 class="section-title">My Recent Complaints</h2>
+                <div id="user-complaints-list">
+                    <!-- User complaints populated here -->
+                </div>
+            </div>
+
+            <!-- Complaint Form -->
+            <div class="complaint-form-section">
+                <h2 class="form-title">Submit New Complaint</h2>
+                <form id="complaintForm" class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="user-name" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number *</label>
+                        <input type="tel" id="user-phone" placeholder="+91 12345 67890" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Consumer ID *</label>
+                        <input type="text" id="user-location" placeholder="Your consumer id" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Issue Type *</label>
+                        <select id="user-issue-type" required>
+                            <option value="">Select Issue</option>
+                            <option value="power-outage">Power Outage</option>
+                            <option value="low-voltage">Low Voltage</option>
+                            <option value="sparking-hazard">Sparking/Hazard</option>
+                            <option value="meter-fault">Meter Fault</option>
+                            <option value="transformer">Transformer Issue</option>
+                            <option value="billing">Billing Issue</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea id="user-description" rows="5" placeholder="Describe your issue in detail..."
+                            required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Photos</label>
+                        <input type="file" id="user-photos" multiple accept="image/*">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <button type="submit" class="submit-btn" id="submit-btn">🚀 Submit Complaint</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    <script src="./js/userDashboard.js"></script>
+</body>
+
+</html>

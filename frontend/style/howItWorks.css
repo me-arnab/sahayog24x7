@@ -1,0 +1,58 @@
+.how-it-works {
+  padding: 80px 60px;
+  text-align: center;
+}
+
+.how-it-works h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1f2933;
+}
+
+.subtitle {
+  margin-top: 10px;
+  color: #555;
+  font-size: 18px;
+}
+
+.steps {
+  margin-top: 50px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.step-card {
+  padding: 30px;
+  border-radius: 16px;
+
+  /* 🔥 NO white background */
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-align: left;
+  transition: 0.3s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0px 0px 20px rgba(8, 240, 93, 0.5);
+}
+
+.step-card .icon {
+  font-size: 32px;
+  margin-bottom: 15px;
+}
+
+.step-card h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: #006c18;
+}
+
+.step-card p {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+}

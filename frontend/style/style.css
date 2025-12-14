@@ -17,6 +17,11 @@
   --text: #222;
 }
 
+/* Scroll animation */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Make the page use a top->bottom gradient that ends exactly at --meet-color */
 body {
   min-height: 100vh;
@@ -97,9 +102,9 @@ body {
   border-bottom: 3px solid #000;
   padding-bottom: 4px;
 }
-.login-btn {
+/* .login-btn {
   font-weight: 700;
-}
+} */
 
 /* FLOATING BUTTONS */
 .floating-buttons {
@@ -148,20 +153,49 @@ body {
 
 /* HERO: center vertically between header and footer meeting point */
 .hero {
-  flex: 1; /* expands to take remaining vertical space */
+  /* flex: 1; /* expands to take remaining vertical space */
+  min-height: 70vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 70px;
+  flex-direction: column;
+  text-align: center;
+  padding: 40px 350px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* inner container to control widths */
 .hero-inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 60px;
   width: 100%;
   max-width: 1200px;
   align-items: center;
+  /* justify-content: center; */
+}
+
+/* scroller */
+.scroll-hint {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.6;
+  animation: bounce 1.5s infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 8px);
+  }
 }
 
 /* left column */
@@ -169,7 +203,7 @@ body {
   width: 100%;
 }
 .left h1 {
-  font-size: 64px;
+  font-size: 70px;
   line-height: 1.1;
   font-weight: 800;
   letter-spacing: 1px;
@@ -182,23 +216,26 @@ body {
 .description {
   margin-top: 18px;
   color: #555;
-  max-width: 520px;
-  font-size: 15px;
+  /* max-width: 520px; */
+  font-size: 18px;
 }
 .cta-btn {
+  /* max-width: 520px; */
+  font-size: 18px;
   display: inline-block;
   margin-top: 20px;
   background: #000;
   color: #fff;
-  padding: 12px 30px;
-  border-radius: 36px;
+  padding: 15px 35px;
+  border-top-left-radius: 36px;
+  border-bottom-right-radius: 36px;
   text-decoration: none;
   font-weight: 700;
 }
 .contact-info {
   margin-top: 22px;
   color: #666;
-  font-size: 14px;
+  font-size: 15px;
   display: flex;
   flex-direction: column;
   gap: 8px;

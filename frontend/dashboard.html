@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaints Dashboard</title>
+    <!-- Favicon -->
+    <link rel="icon" href="/frontend/assets/logo.png" type="image/x-icon">
+    <!-- Link stylesheets -->
+    <link rel="stylesheet" href="./style/dashboard.css">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geom:ital,wght@0,300..900;1,300..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="logo">
+                <img src="/frontend/assets/logo.png" class="logo-icon" alt="logo">
+                <span class="logo-text">Sahayog</span>
+                <span class="logo-text-24">24</span>
+                <span class="logo-text-x">x</span>
+                <span class="logo-text-7">7</span>
+            </div>
+            <div class="nav-tabs">
+                
+                <button class="nav-tab active" onclick="switchDashboard('user')">👤 User Dashboard</button>
+                <button class="nav-tab" onclick="switchDashboard('admin')">👨‍💼 Admin Dashboard</button>
+                <button class="nav-tab"><a href="./index.html" style="text-decoration: none; font-size: 25px;">🏠</a></button>
+            </div>
+        </nav>
+
+        <!-- USER DASHBOARD -->
+        <div id="user-dashboard" class="dashboard active">
+            <!-- Stats Cards -->
+            <div class="user-stats">
+                <div class="stat-card" onclick="showUserStats('total')">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-number" id="user-total-complaints">5</div>
+                    <div class="stat-label">Total Complaints</div>
+                </div>
+                <div class="stat-card" onclick="showUserStats('pending')">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-number" id="user-pending">2</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat-card" onclick="showUserStats('resolved')">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-number" id="user-resolved">3</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-number">4.2</div>
+                    <div class="stat-label">Avg Rating</div>
+                </div>
+            </div>
+
+            <!-- My Complaints -->
+            <div class="my-complaints">
+                <h2 class="section-title">My Recent Complaints</h2>
+                <div id="user-complaints-list">
+                    <!-- User complaints populated here -->
+                </div>
+            </div>
+
+            <!-- Complaint Form -->
+            <div class="complaint-form-section">
+                <h2 class="form-title">Submit New Complaint</h2>
+                <form id="complaintForm" class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="user-name" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number *</label>
+                        <input type="tel" id="user-phone" placeholder="+91 12345 67890" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Consumer ID *</label>
+                        <input type="text" id="user-location" placeholder="Enter your consumer id" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Issue Type *</label>
+                        <select id="user-issue-type" required>
+                            <option value="">Select Issue</option>
+                            <option value="power-outage">Power Outage</option>
+                            <option value="low-voltage">Low Voltage</option>
+                            <option value="sparking-hazard">Sparking/Hazard</option>
+                            <option value="meter-fault">Meter Fault</option>
+                            <option value="transformer">Transformer Issue</option>
+                            <option value="billing">Billing Issue</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea id="user-description" rows="5" placeholder="Describe your issue in detail..."
+                            required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Photos</label>
+                        <input type="file" id="user-photos" multiple accept="image/*">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <button type="submit" class="submit-btn" id="submit-btn"><span id="text"> Submit Complaint</span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ADMIN DASHBOARD -->
+        <div id="admin-dashboard" class="dashboard">
+            <div class="admin-dashboard">
+                <!-- Sidebar Filters -->
+                <div class="sidebar">
+                    <h3 class="sidebar-title">Filters</h3>
+
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="status-filter">
+                            <option value="all">All Status</option>
+                            <option value="received">Received</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="escalated">Escalated</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Priority</label>
+                        <select id="priority-filter">
+                            <option value="all">All Priorities</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Ward/Zone</label>
+                        <select id="zone-filter">
+                            <option value="all">All Zones</option>
+                            <option value="ward-1">Ward 1</option>
+                            <option value="ward-2">Ward 2</option>
+                            <option value="ward-3">Ward 3</option>
+                            <option value="ward-5">Ward 5</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>From Date</label>
+                        <input type="date" id="date-from">
+                    </div>
+                    <div class="filter-group">
+                        <label>To Date</label>
+                        <input type="date" id="date-to">
+                    </div>
+
+                    <button class="submit-btn" onclick="clearFilters()" style="margin-top: 20px; padding: 15px;">
+                        Clear Filters</button>
+
+                    <!-- Quick Stats -->
+                    <h3 class="sidebar-title" style="margin-top: 40px;">📊 Overview</h3>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div><strong>Total:</strong> <span id="admin-total">127</span></div>
+                        <div><strong>Open:</strong> <span id="admin-open">23</span></div>
+                        <div><strong>SLA Breach:</strong> <span id="admin-sla">4</span></div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="main-content">
+                    <div class="content-header">
+                        <h2 class="content-title">Complaints Dashboard <span id="results-count">(127 results)</span>
+                        </h2>
+                        <input type="text" class="search-input" id="search-input" placeholder="Search complaints...">
+                    </div>
+
+                    <div class="complaints-grid">
+                        <div id="complaintsList">
+                            <!-- Dynamic complaints will be here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complaint Detail Modal -->
+    <div id="complaint-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Complaint Details</h3>
+                <span class="close-modal" onclick="closeModal()">×</span>
+            </div>
+            <div id="modal-body"></div>
+            <div class="modal-actions" id="modal-actions">
+                <!-- Dynamic action buttons based on status -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script src="./js/dashboard.js"></script>
+</body>
+
+</html>
