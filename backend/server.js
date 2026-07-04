@@ -4,8 +4,22 @@ const connectDB = require("./src/config/db");
 
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
+// Start the server even if MongoDB is unavailable (for frontend preview)
+const startServer = () => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Frontend: http://localhost:${PORT}/`);
+    console.log(`Worker Dashboard: http://localhost:${PORT}/worker-dashboard.html`);
   });
-});
+};
+
+connectDB()
+  .then(() => {
+    console.log("MongoDB connected — API is fully operational");
+    startServer();
+  })
+  .catch((err) => {
+    console.warn(`MongoDB unavailable: ${err.message}`);
+    console.warn("Starting server in static-only mode (API calls will fail)");
+    startServer();
+  });
