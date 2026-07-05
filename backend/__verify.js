@@ -1,5 +1,5 @@
 process.env.JWT_SECRET = "test";
-process.env.MONGODB_URI = "mongodb+srv://ahanag0000_db_user:2ir66a1WHpYrXoB6@sahayog24x7.svatvdd.mongodb.net/?appName=Sahayog24x7";
+process.env.MONGODB_URI = "mongodb+srv://arnabme2005_db_user:Qlaf2UNT6RQ2iKBy@complains.quakjti.mongodb.net/?appName=Complains";
 
 console.log("Loading app module...");
 require("./src/app");

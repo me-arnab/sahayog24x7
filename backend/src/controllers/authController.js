@@ -5,6 +5,10 @@ const Worker = require("../models/Worker");
 
 const fallbackWorkers = new Map();
 
+// Fallback secret so login works without a .env file
+const JWT_SECRET = process.env.JWT_SECRET || "sahayog24x7_jwt_fallback_secret_2024";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+
 const isMongoReady = () => mongoose.connection.readyState === 1;
 
 const fallbackFindWorker = async (employeeId) => fallbackWorkers.get(employeeId) || null;
@@ -118,8 +122,8 @@ exports.login = async (req, res) => {
 
       const token = jwt.sign(
         { id: worker._id, employeeId: worker.employeeId, role: worker.role },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES_IN }
       );
 
       return res.json({
@@ -145,8 +149,8 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(
       { id: worker._id, employeeId: worker.employeeId, role: worker.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
     );
 
     res.json({
@@ -173,8 +177,8 @@ exports.login = async (req, res) => {
 
       const token = jwt.sign(
         { id: worker._id, employeeId: worker.employeeId, role: worker.role },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES_IN }
       );
 
       return res.json({
