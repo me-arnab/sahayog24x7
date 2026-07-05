@@ -53,15 +53,83 @@ JWT_EXPIRES_IN=7d
 
 Start the server first (see below), then in another terminal:
 
+**Command Prompt (cmd):**
 ```bash
-curl -X POST http://localhost:5000/api/auth/seed \
-  -H "Content-Type: application/json" \
-  -d '{"employeeId": "WB001", "name": "Rahul Das", "password": "password123"}'
+curl -X POST http://localhost:5000/api/auth/seed ^
+  -H "Content-Type: application/json" ^
+  -d "{\"employeeId\": \"WB001\", \"name\": \"Rahul Das\", \"password\": \"password123\"}"
+```
+
+**Windows PowerShell:**
+```powershell
+$body = @{
+  employeeId = "WB001"
+  name       = "Rahul Das"
+  password   = "password123"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri http://localhost:5000/api/auth/seed -Method Post -ContentType "application/json" -Body $body
 ```
 
 ---
 
-## ▶️ Start the Project (Single Command)
+### 5. Seed test complaints (required for the worker dashboard)
+
+After seeding a worker, assign sample complaints to them. The complaints will appear on the worker dashboard after login.
+
+**Windows PowerShell:**
+```powershell
+$json = @'
+{
+  "employeeId": "WB001",
+  "complaints": [
+    {
+      "complaintId": "CMP-2024-001",
+      "consumerName": "Ananya Roy",
+      "address": "12/3 Ballygunge Place, Kolkata",
+      "description": "No power supply for over 6 hours. Entire block affected.",
+      "priority": "CRITICAL"
+    },
+    {
+      "complaintId": "CMP-2024-002",
+      "consumerName": "Suman Ghosh",
+      "address": "45 Lake View Road, Flat 3B, Kolkata",
+      "description": "Frequent voltage fluctuations damaging appliances.",
+      "priority": "HIGH"
+    },
+    {
+      "complaintId": "CMP-2024-003",
+      "consumerName": "Priya Banerjee",
+      "address": "7B Rashbehari Avenue, Kolkata",
+      "description": "Street light pole sparking near the entrance gate.",
+      "priority": "HIGH"
+    },
+    {
+      "complaintId": "CMP-2024-004",
+      "consumerName": "Arun Das",
+      "address": "89 Naktala Road, Kolkata",
+      "description": "Single phase power supply issue – only one phase working.",
+      "priority": "MEDIUM"
+    },
+    {
+      "complaintId": "CMP-2024-005",
+      "consumerName": "Meera Iyer",
+      "address": "22 Southern Avenue, Kolkata",
+      "description": "No electricity in the entire building since yesterday evening.",
+      "priority": "CRITICAL"
+    }
+  ]
+}
+'@
+
+Invoke-RestMethod -Uri http://localhost:5000/api/complaints/seed -Method Post -ContentType "application/json" -Body $json
+```
+
+> ✅ **Verify**: The server will respond with `"5 complaints created for Rahul Das"` and the full list of created complaints.
+
+---
+
+## ▶️ Start the Project
 
 ### Option A: Start everything from root
 
@@ -126,7 +194,7 @@ sahayog24x7/
 
 ---
 
-## 🐞 Troubleshooting
+## 🔧 Troubleshooting
 
 | Problem | Solution |
 |---------|----------|

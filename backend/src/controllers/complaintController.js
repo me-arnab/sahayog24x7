@@ -1,4 +1,40 @@
 const Complaint = require("../models/Complaint");
+const Worker = require("../models/Worker");
+
+exports.seedComplaints = async (req, res) => {
+  try {
+    const { employeeId, complaints } = req.body;
+
+    if (!employeeId || !complaints || !Array.isArray(complaints) || complaints.length === 0) {
+      return res.status(400).json({ message: "employeeId and complaints array are required" });
+    }
+
+    const worker = await Worker.findOne({ employeeId });
+    if (!worker) {
+      return res.status(404).json({ message: `Worker with employeeId "${employeeId}" not found. Seed a worker first.` });
+    }
+
+    const complaintDocs = complaints.map((c, i) => ({
+      complaintId: c.complaintId || `CMP-${Date.now()}-${i}`,
+      consumerName: c.consumerName,
+      address: c.address,
+      description: c.description,
+      priority: c.priority || "MEDIUM",
+      status: "ASSIGNED",
+      assignedWorker: worker._id,
+    }));
+
+    const created = await Complaint.insertMany(complaintDocs);
+
+    res.status(201).json({
+      message: `${created.length} complaints created for ${worker.name}`,
+      complaints: created,
+    });
+  } catch (error) {
+    console.error("Seed complaints error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 exports.getAssignedComplaints = async (req, res) => {
   try {
