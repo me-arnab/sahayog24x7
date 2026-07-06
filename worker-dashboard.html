@@ -1,161 +1,262 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sahayog24x7 — Worker Dashboard</title>
-  <link rel="icon" href="./assets/logo.png" type="image/x-icon">
-  <link rel="stylesheet" href="./style/worker-dashboard.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sahayog24x7 — Worker Dashboard</title>
+    <link rel="icon" href="./assets/logo.png" type="image/x-icon" />
+    <link rel="stylesheet" href="./style/worker-dashboard.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Fluid Ambient Background -->
+    <div class="ambient-background"></div>
 
-  <!-- ═══════════ LOGIN SCREEN ═══════════ -->
-  <div id="loginScreen" class="login-screen">
-    <div class="login-glass">
-      <div class="login-logo">
-        <img src="./assets/logo.png" alt="logo">
-        <span class="logo-text">Sahayog</span>
-        <span class="logo-text-24">24</span>
-        <span class="logo-text-x">x</span>
-        <span class="logo-text-7">7</span>
+    <!-- ═══════════ LOGIN SCREEN ═══════════ -->
+    <div id="loginScreen" class="login-screen">
+      <div class="login-glass fade-in-up">
+        <div class="login-logo">
+          <span class="logo-text"
+            >Sahayog<span class="highlight">24x7</span></span
+          >
+        </div>
+        <h2 class="login-title">Worker Login</h2>
+        <p class="login-sub">Sign in to view your assigned complaints</p>
+        <form id="loginForm">
+          <div class="login-field">
+            <label>Employee ID</label>
+            <input
+              type="text"
+              id="loginEmpId"
+              placeholder="e.g. WB001"
+              required
+            />
+          </div>
+          <div class="login-field">
+            <label>Password</label>
+            <input
+              type="password"
+              id="loginPassword"
+              placeholder="Enter password"
+              required
+            />
+          </div>
+          <button type="submit" class="login-btn" id="loginBtn">
+            <span id="loginBtnText">Sign In</span>
+            <span
+              id="loginSpinner"
+              class="spinner"
+              style="display: none"
+            ></span>
+          </button>
+        </form>
+        <p class="login-error" id="loginError"></p>
+        <p class="login-home">
+          <a href="./index.html"><i class="fas fa-home"></i> Back to Home</a>
+        </p>
       </div>
-      <h2 class="login-title">Worker Login</h2>
-      <p class="login-sub">Sign in to view your assigned complaints</p>
-      <form id="loginForm">
-        <div class="login-field">
-          <label>Employee ID</label>
-          <input type="text" id="loginEmpId" placeholder="e.g. WB001" required>
-        </div>
-        <div class="login-field">
-          <label>Password</label>
-          <input type="password" id="loginPassword" placeholder="Enter password" required>
-        </div>
-        <button type="submit" class="login-btn" id="loginBtn">
-          <span id="loginBtnText">Sign In</span>
-          <span id="loginSpinner" class="spinner" style="display:none;"></span>
-        </button>
-      </form>
-      <p class="login-error" id="loginError"></p>
-      <p class="login-home"><a href="./index.html"><i class="fas fa-home"></i> Back to Home</a></p>
     </div>
-  </div>
 
-  <!-- ═══════════ WORKER DASHBOARD ═══════════ -->
-  <div id="dashboardScreen" class="dashboard-screen" style="display:none;">
-    <div class="container">
+    <!-- ═══════════ WORKER DASHBOARD ═══════════ -->
+    <div id="dashboardScreen" class="dashboard-screen" style="display: none">
+      <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar slide-down">
+          <div class="logo">
+            <span class="logo-text"
+              >Sahayog<span class="highlight">24x7</span></span
+            >
+          </div>
+          <div class="nav-right">
+            <span
+              class="worker-badge"
+              id="workerBadge"
+              onclick="openProfileModal()"
+              >👤 WB001</span
+            >
+            <button class="logout-btn" onclick="logout()">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
+        </nav>
+        <!-- ═══════════ USER PROFILE MODAL ═══════════ -->
+        <div id="profileModal" class="modal">
+          <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+              <h3><i class="fas fa-user-circle"></i> Worker Profile</h3>
+              <span class="close-modal" onclick="closeProfileModal()"
+                >&times;</span
+              >
+            </div>
+            <div id="profileBody" class="modal-body text-center">
+              <!-- populated by JS -->
+            </div>
+          </div>
+        </div>
 
-      <!-- Navbar -->
-      <nav class="navbar">
-        <div class="logo">
-          <img src="./assets/logo.png" class="logo-icon" alt="logo">
-          <span class="logo-text">Sahayog</span>
-          <span class="logo-text-24">24</span>
-          <span class="logo-text-x">x</span>
-          <span class="logo-text-7">7</span>
-        </div>
-        <div class="nav-right">
-          <span class="worker-badge" id="workerBadge">👤 WB001</span>
-          <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
-      </nav>
+        <!-- Stats -->
+        <div class="stats-row slide-up">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Total Assigned</span>
+              <div
+                class="stat-icon"
+                style="
+                  color: var(--accent);
+                  background: rgba(74, 144, 226, 0.1);
+                "
+              >
+                <i class="fas fa-clipboard-list"></i>
+              </div>
+            </div>
+            <div class="stat-number" id="statTotal">0</div>
+          </div>
 
-      <!-- Stats -->
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-icon">📋</div>
-          <div class="stat-number" id="statTotal">0</div>
-          <div class="stat-label">Total Assigned</div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">In Progress</span>
+              <div
+                class="stat-icon"
+                style="color: var(--warn); background: rgba(255, 165, 2, 0.1)"
+              >
+                <i class="fas fa-tools"></i>
+              </div>
+            </div>
+            <div class="stat-number" id="statInProgress">0</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Completed</span>
+              <div
+                class="stat-icon"
+                style="
+                  color: var(--success);
+                  background: rgba(46, 213, 115, 0.1);
+                "
+              >
+                <i class="fas fa-check-circle"></i>
+              </div>
+            </div>
+            <div class="stat-number" id="statCompleted">0</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Assigned</span>
+              <div
+                class="stat-icon"
+                style="
+                  color: var(--text-muted);
+                  background: rgba(255, 255, 255, 0.05);
+                "
+              >
+                <i class="fas fa-clock"></i>
+              </div>
+            </div>
+            <div class="stat-number" id="statPending">0</div>
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">⏳</div>
-          <div class="stat-number" id="statInProgress">0</div>
-          <div class="stat-label">In Progress</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">✅</div>
-          <div class="stat-number" id="statCompleted">0</div>
-          <div class="stat-label">Completed</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🕐</div>
-          <div class="stat-number" id="statPending">0</div>
-          <div class="stat-label">Assigned</div>
+
+        <!-- Complaints Section -->
+        <div class="complaints-section fade-in">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-tasks"></i> My Assigned Complaints
+            </h2>
+            <button class="refresh-btn" onclick="loadComplaints()">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+          <div id="complaintsList" class="complaints-grid">
+            <!-- populated by JS -->
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- Complaints Section -->
-      <div class="complaints-section">
-        <div class="section-header">
-          <h2 class="section-title"><i class="fas fa-tasks"></i> My Assigned Complaints</h2>
-          <button class="refresh-btn" onclick="loadComplaints()"><i class="fas fa-sync-alt"></i> Refresh</button>
+    <!-- ═══════════ COMPLAINT DETAIL MODAL ═══════════ -->
+    <div id="detailModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modalTitle">Complaint Details</h3>
+          <span class="close-modal" onclick="closeModal()">&times;</span>
         </div>
-        <div id="complaintsList" class="complaints-grid">
+        <div id="modalBody" class="modal-body">
+          <!-- populated by JS -->
+        </div>
+        <div class="modal-actions" id="modalActions">
           <!-- populated by JS -->
         </div>
       </div>
-
     </div>
-  </div>
 
-  <!-- ═══════════ COMPLAINT DETAIL MODAL ═══════════ -->
-  <div id="detailModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="modalTitle">Complaint Details</h3>
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-      </div>
-      <div id="modalBody" class="modal-body">
-        <!-- populated by JS -->
-      </div>
-      <div class="modal-actions" id="modalActions">
-        <!-- populated by JS -->
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════ WORK REPORT MODAL ═══════════ -->
-  <div id="reportModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="fas fa-file-alt"></i> Submit Work Report</h3>
-        <span class="close-modal" onclick="closeReportModal()">&times;</span>
-      </div>
-      <form id="reportForm">
-        <input type="hidden" id="reportComplaintId">
-        <div class="form-group">
-          <label>Work Performed *</label>
-          <textarea id="reportWorkPerformed" rows="4" placeholder="Describe what work was done..." required></textarea>
+    <!-- ═══════════ WORK REPORT MODAL ═══════════ -->
+    <div id="reportModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i class="fas fa-file-alt"></i> Submit Work Report</h3>
+          <span class="close-modal" onclick="closeReportModal()">&times;</span>
         </div>
-        <div class="form-group">
-          <label>Condition After Repair *</label>
-          <textarea id="reportConditionAfter" rows="3" placeholder="Describe the condition after work..." required></textarea>
-        </div>
-        <div class="form-group">
-          <label>After Photo *</label>
-          <div class="file-upload-wrapper">
-            <input type="file" id="reportPhoto" accept="image/*" required>
-            <div class="file-upload-label"><i class="fas fa-camera"></i> Choose Photo</div>
+        <form id="reportForm">
+          <input type="hidden" id="reportComplaintId" />
+          <div class="form-group">
+            <label>Work Performed *</label>
+            <textarea
+              id="reportWorkPerformed"
+              rows="4"
+              placeholder="Describe what work was done..."
+              required
+            ></textarea>
           </div>
-          <div id="photoPreview" class="photo-preview" style="display:none;">
-            <img id="previewImg" alt="Preview">
+          <div class="form-group">
+            <label>Condition After Repair *</label>
+            <textarea
+              id="reportConditionAfter"
+              rows="3"
+              placeholder="Describe the condition after work..."
+              required
+            ></textarea>
           </div>
-        </div>
-        <button type="submit" class="submit-btn" id="reportBtn">
-          <span id="reportBtnText"><i class="fas fa-paper-plane"></i> Submit Report</span>
-          <span id="reportSpinner" class="spinner" style="display:none;"></span>
-        </button>
-        <p class="report-error" id="reportError"></p>
-      </form>
+          <div class="form-group">
+            <label>After Photo *</label>
+            <div class="file-upload-wrapper">
+              <input type="file" id="reportPhoto" accept="image/*" required />
+              <div class="file-upload-label">
+                <i class="fas fa-camera"></i> Choose Photo
+              </div>
+            </div>
+            <div id="photoPreview" class="photo-preview" style="display: none">
+              <img id="previewImg" alt="Preview" />
+            </div>
+          </div>
+          <button type="submit" class="submit-btn" id="reportBtn">
+            <span id="reportBtnText"
+              ><i class="fas fa-paper-plane"></i> Submit Report</span
+            >
+            <span
+              id="reportSpinner"
+              class="spinner"
+              style="display: none"
+            ></span>
+          </button>
+          <p class="report-error" id="reportError"></p>
+        </form>
+      </div>
     </div>
-  </div>
 
-  <!-- ═══════════ NOTIFICATION ═══════════ -->
-  <div id="notification" class="notification"></div>
+    <!-- ═══════════ NOTIFICATION ═══════════ -->
+    <div id="notification" class="notification"></div>
 
-  <script src="./js/worker-dashboard.js"></script>
-</body>
+    <script src="./js/worker-dashboard.js"></script>
+  </body>
 </html>

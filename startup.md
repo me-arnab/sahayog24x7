@@ -3,6 +3,7 @@
 ## Overview
 
 Sahayog24x7 is a **Smart Electricity Grievance System** with:
+
 - **Frontend**: HTML, CSS, JavaScript (served statically by Express)
 - **Backend**: Node.js + Express + MongoDB
 - **Port**: `5000` (one server serves both frontend and API)
@@ -11,11 +12,11 @@ Sahayog24x7 is a **Smart Electricity Grievance System** with:
 
 ## 📋 Prerequisites
 
-| Tool | Version | Check Command |
-|------|---------|--------------|
-| Node.js | v18+ | `node --version` |
-| npm | v9+ | `npm --version` |
-| MongoDB | v6+ | `mongod --version` or use MongoDB Atlas |
+| Tool    | Version | Check Command                           |
+| ------- | ------- | --------------------------------------- |
+| Node.js | v18+    | `node --version`                        |
+| npm     | v9+     | `npm --version`                         |
+| MongoDB | v6+     | `mongod --version` or use MongoDB Atlas |
 
 ---
 
@@ -54,6 +55,7 @@ JWT_EXPIRES_IN=7d
 Start the server first (see below), then in another terminal:
 
 **Command Prompt (cmd):**
+
 ```bash
 curl -X POST http://localhost:5000/api/auth/seed ^
   -H "Content-Type: application/json" ^
@@ -61,6 +63,7 @@ curl -X POST http://localhost:5000/api/auth/seed ^
 ```
 
 **Windows PowerShell:**
+
 ```powershell
 $body = @{
   employeeId = "WB001"
@@ -78,6 +81,7 @@ Invoke-RestMethod -Uri http://localhost:5000/api/auth/seed -Method Post -Content
 After seeding a worker, assign sample complaints to them. The complaints will appear on the worker dashboard after login.
 
 **Windows PowerShell:**
+
 ```powershell
 $json = @'
 {
@@ -138,6 +142,7 @@ npm start
 ```
 
 This starts both:
+
 - **Backend API** on `http://localhost:5000/api/`
 - **Frontend** on `http://localhost:5000/`
 
@@ -183,23 +188,23 @@ sahayog24x7/
 
 ## 🌐 API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/health` | No | Health check |
-| POST | `/api/auth/login` | No | Worker login |
-| GET | `/api/complaints` | JWT | List assigned complaints |
-| GET | `/api/complaints/:id` | JWT | Get complaint details |
-| PUT | `/api/complaints/:id/start` | JWT | Start work |
-| POST | `/api/work-report` | JWT+File | Submit work report |
+| Method | Endpoint                    | Auth     | Description              |
+| ------ | --------------------------- | -------- | ------------------------ |
+| GET    | `/api/health`               | No       | Health check             |
+| POST   | `/api/auth/login`           | No       | Worker login             |
+| GET    | `/api/complaints`           | JWT      | List assigned complaints |
+| GET    | `/api/complaints/:id`       | JWT      | Get complaint details    |
+| PUT    | `/api/complaints/:id/start` | JWT      | Start work               |
+| POST   | `/api/work-report`          | JWT+File | Submit work report       |
 
 ---
 
 ## 🔧 Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
+| Problem                   | Solution                                  |
+| ------------------------- | ----------------------------------------- |
 | `ECONNREFUSED` on MongoDB | Start MongoDB: `mongod --dbpath /data/db` |
-| `MODULE_NOT_FOUND` | Run `npm install` in `backend/` |
-| Port 5000 in use | Change `PORT` in `.env` |
-| CORS errors | Backend has CORS enabled by default |
-| File upload fails | Ensure `uploads/` directory exists |
+| `MODULE_NOT_FOUND`        | Run `npm install` in `backend/`           |
+| Port 5000 in use          | Change `PORT` in `.env`                   |
+| CORS errors               | Backend has CORS enabled by default       |
+| File upload fails         | Ensure `uploads/` directory exists        |

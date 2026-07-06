@@ -5,10 +5,10 @@ const dns = require("node:dns");
 dns.setDefaultResultOrder("ipv4first");
 
 const ATLAS_SRV_URI =
-  "mongodb+srv://ahanag0000_db_user:2ir66a1WHpYrXoB6@sahayog24x7.svatvdd.mongodb.net/?appName=Sahayog24x7";
+  "mongodb+srv://arnabme2005_db_user:Qlaf2UNT6RQ2iKBy@complains.quakjti.mongodb.net/?appName=Complains";
 
 const ATLAS_DIRECT_URI =
-  "mongodb://ahanag0000_db_user:2ir66a1WHpYrXoB6@ac-ezvbolv-shard-00-00.svatvdd.mongodb.net:27017,ac-ezvbolv-shard-00-01.svatvdd.mongodb.net:27017,ac-ezvbolv-shard-00-02.svatvdd.mongodb.net:27017/sahayog24x7?replicaSet=atlas-ezvbolv-shard-0&ssl=true&authSource=admin";
+  "mongodb+srv://arnabme2005_db_user:Qlaf2UNT6RQ2iKBy@complains.quakjti.mongodb.net/?appName=Complains";
 
 const connectDB = async () => {
   // Try SRV URI first, fall back to direct URI if DNS SRV fails

@@ -184,13 +184,57 @@ function logout() {
   document.getElementById("loginForm").reset();
 }
 
+// ─── USER PROFILE MODAL ───
+function openProfileModal() {
+  const body = document.getElementById("profileBody");
+  
+  // Fallback to "Unknown" if data is missing for some reason
+  const empId = workerData ? workerData.employeeId : "Unknown";
+  const role = workerData && workerData.role ? workerData.role : "WORKER";
+  
+  body.innerHTML = `
+    <div class="profile-avatar">
+      <i class="fas fa-user-tie"></i>
+    </div>
+    <div class="profile-detail">
+      <span class="profile-detail-label">Employee ID</span>
+      <span class="profile-detail-value">${escapeHtml(empId)}</span>
+    </div>
+    <div class="profile-detail">
+      <span class="profile-detail-label">System Role</span>
+      <span class="status-badge status-ASSIGNED" style="font-size: 12px; padding: 6px 14px;">${escapeHtml(role)}</span>
+    </div>
+  `;
+  
+  document.getElementById("profileModal").style.display = "flex";
+}
+
+function closeProfileModal() {
+  document.getElementById("profileModal").style.display = "none";
+}
+
+// Add the outside-click closer to your existing initModals function
+// Find the initModals() function in your code and update it to look like this:
+function initModals() {
+  document.getElementById("detailModal").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  document.getElementById("reportModal").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) closeReportModal();
+  });
+  // Add this new line:
+  document.getElementById("profileModal").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) closeProfileModal();
+  });
+}
+
 // ─── LOAD COMPLAINTS ───
 async function loadComplaints() {
   const container = document.getElementById("complaintsList");
   container.innerHTML = `
     <div class="loading-state">
-      <div class="loading-spinner-lg"></div>
-      <p>Loading complaints...</p>
+      <div class="spinner"></div>
+      <p style="margin-top: 10px;">Loading complaints...</p>
     </div>
   `;
 
@@ -201,7 +245,7 @@ async function loadComplaints() {
   } catch (err) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">⚠️</div>
+        <div style="font-size: 40px; margin-bottom: 15px;">⚠️</div>
         <h3>Failed to Load</h3>
         <p>${escapeHtml(err.message)}</p>
       </div>
@@ -216,7 +260,7 @@ function renderComplaints(complaints) {
   if (!complaints || complaints.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">📭</div>
+        <div style="font-size: 40px; margin-bottom: 15px;">📭</div>
         <h3>No Complaints Assigned</h3>
         <p>You don't have any complaints assigned yet.</p>
       </div>
@@ -245,9 +289,9 @@ function renderComplaints(complaints) {
             <div class="complaint-desc">${escapeHtml(c.description || "")}</div>
           </div>
           <div class="complaint-actions">
-            <button class="action-btn view-btn" onclick="openDetailModal('${c._id}')">👁 View</button>
-            ${isAssigned ? `<button class="action-btn start-btn" onclick="startWork('${c._id}')">🔧 Start Work</button>` : ""}
-            ${isInProgress ? `<button class="action-btn report-btn" onclick="openReportModal('${c._id}')">📝 Submit Report</button>` : ""}
+            <button class="action-btn" onclick="openDetailModal('${c._id}')">👁 View</button>
+            ${isAssigned ? `<button class="action-btn start-btn" onclick="startWork('${c._id}')">🔧 Start</button>` : ""}
+            ${isInProgress ? `<button class="action-btn report-btn" onclick="openReportModal('${c._id}')">📝 Report</button>` : ""}
           </div>
         </div>
       `;
@@ -289,13 +333,13 @@ async function openDetailModal(complaintId) {
       <p><strong>🔢 Complaint ID:</strong> ${escapeHtml(complaint.complaintId || complaint._id)}</p>
       <p><strong>👤 Consumer:</strong> ${escapeHtml(complaint.consumerName || "N/A")}</p>
       <p><strong>📍 Address:</strong> ${escapeHtml(complaint.address || "N/A")}</p>
-      <p><strong>🏷 Priority:</strong>
+      <p style="margin-top: 10px;"><strong>🏷 Priority:</strong>
         <span class="priority-badge priority-${escapeHtml(complaint.priority)}">${escapeHtml(complaint.priority)}</span>
       </p>
-      <p><strong>📋 Status:</strong>
+      <p style="margin-top: 10px;"><strong>📋 Status:</strong>
         <span class="status-badge status-${escapeHtml(complaint.status)}">${escapeHtml(complaint.status.replace(/_/g, " "))}</span>
       </p>
-      <p><strong>📅 Created:</strong> ${formatDate(complaint.createdAt)}</p>
+      <p style="margin-top: 10px;"><strong>📅 Created:</strong> ${formatDate(complaint.createdAt)}</p>
       ${complaint.startTime ? `<p><strong>🔧 Started:</strong> ${formatDate(complaint.startTime)}</p>` : ""}
       ${complaint.endTime ? `<p><strong>✅ Completed:</strong> ${formatDate(complaint.endTime)}</p>` : ""}
       ${complaint.timeTakenInSeconds ? `<p><strong>⏱ Time Taken:</strong> ${Math.floor(complaint.timeTakenInSeconds / 60)}m ${complaint.timeTakenInSeconds % 60}s</p>` : ""}
@@ -317,7 +361,7 @@ async function openDetailModal(complaintId) {
       `;
     } else if (complaint.status === "COMPLETED") {
       actions.innerHTML = `
-        <p style="color:#059669;font-weight:600;padding:10px 0;">✅ This complaint is completed.</p>
+        <p style="color:var(--success);font-weight:600;padding:10px 0;">✅ This complaint is completed.</p>
         <button class="action-btn" onclick="closeModal()">Close</button>
       `;
     } else {
