@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sahayog24x7 - Consumer Dashboard</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style/userDashboardNew.css" />
+  </head>
+  <body>
+    <!-- Top Navigation -->
+    <nav class="navbar">
+      <div class="brand">Sahayog<span>24x7</span></div>
+      <div class="user-profile">
+        <span class="user-badge"
+          ><i class="fas fa-user-circle"></i> Suraj Sen</span
+        >
+        <button class="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Dashboard Layout -->
+    <main class="dashboard-container">
+      <!-- Left Column: Lodge Complaint Form -->
+      <section class="form-section">
+        <div class="card form-card">
+          <h2 class="section-title">
+            <i class="fas fa-bolt"></i> Lodge a Complaint
+          </h2>
+          <p class="section-subtitle">
+            Submit your issue and we will assign a worker immediately.
+          </p>
+
+          <form id="complaintForm">
+            <div class="form-group">
+              <label>Full Name</label>
+              <div class="input-wrapper">
+                <i class="fas fa-user"></i>
+                <input
+                  type="text"
+                  id="consumerName"
+                  placeholder="e.g., Arnab Sarkhel"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Phone Number</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-phone"></i>
+                  <input
+                    type="tel"
+                    id="phoneNo"
+                    placeholder="10-digit number"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Consumer ID</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-id-card"></i>
+                  <input
+                    type="text"
+                    id="consumerId"
+                    placeholder="e.g., CON-12345"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Select Issue Type</label>
+              <div class="input-wrapper">
+                <i class="fas fa-list-ul"></i>
+                <select id="issueCategory" required>
+                  <option value="" disabled selected>
+                    Choose the primary issue...
+                  </option>
+                  <option value="Power Outage">Complete Power Outage</option>
+                  <option value="Voltage Fluctuation">
+                    Voltage Fluctuation
+                  </option>
+                  <option value="Street Light">Street Light Issue</option>
+                  <option value="Meter Fault">Meter Fault / Sparking</option>
+                  <option value="Other">Other Maintenance</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Issue Description</label>
+              <textarea
+                id="description"
+                rows="4"
+                placeholder="Please provide exact details or landmarks..."
+                required
+              ></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-paper-plane"></i> Submit Complaint
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Right Column: Complaint History -->
+      <section class="history-section">
+        <div class="card history-card">
+          <div class="history-header">
+            <h2 class="section-title">
+              <i class="fas fa-history"></i> My Complaints
+            </h2>
+            <button class="refresh-btn" onclick="renderComplaints()">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+
+          <!-- List populated by JavaScript -->
+          <div id="complaintsList" class="complaints-list">
+            <!-- Cards go here -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/userDashboardNew.js"></script>
+  </body>
+</html>

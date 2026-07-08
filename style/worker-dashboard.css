@@ -940,3 +940,185 @@ body {
     flex-direction: column;
   }
 }
+
+/* =====================================================
+   PROFESSIONAL ENTERPRISE THEME (APPEND AT END)
+   ===================================================== */
+
+:root {
+  --bg-base: #eef3f8;
+  --bg-surface: #ffffff;
+  --border-color: #d8e1ec;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --accent: #2563eb;
+  --success: #16a34a;
+  --warn: #f59e0b;
+  --danger: #dc2626;
+}
+
+body {
+  background: linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%) !important;
+  color: var(--text-main) !important;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(37, 99, 235, 0.08),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 85% 10%,
+      rgba(14, 165, 233, 0.08),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(59, 130, 246, 0.05),
+      transparent 35%
+    );
+}
+
+.ambient-background {
+  display: none !important;
+}
+
+.navbar,
+.login-glass,
+.complaints-section,
+.stat-card,
+.complaint-card,
+.modal-content {
+  background: #fff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+}
+
+.navbar {
+  background: #fcfdfe !important;
+}
+
+.login-btn,
+.submit-btn {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+.login-btn:hover,
+.submit-btn:hover {
+  background: #1d4ed8 !important;
+}
+
+.refresh-btn,
+.action-btn,
+.logout-btn {
+  background: #fff !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.refresh-btn:hover,
+.action-btn:hover {
+  background: #eff6ff !important;
+  color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+.worker-badge {
+  background: #eff6ff !important;
+  color: #2563eb !important;
+  border: 1px solid #bfdbfe !important;
+}
+
+.login-field input,
+.form-group textarea,
+.file-upload-label {
+  background: #fff !important;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.login-field input:focus,
+.form-group textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12) !important;
+}
+
+.complaint-card {
+  border-left: 5px solid #2563eb !important;
+}
+.complaint-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 35px rgba(37, 99, 235, 0.1) !important;
+}
+
+.status-ASSIGNED {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+.status-IN_PROGRESS {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+.status-COMPLETED {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+}
+
+.priority-HIGH,
+.priority-CRITICAL {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+.priority-MEDIUM {
+  background: #fef3c7 !important;
+  color: #b45309 !important;
+}
+.priority-LOW {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+}
+
+.modal {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(6px);
+}
+
+.notification {
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+}
+
+/* ===== Description Box Fix ===== */
+
+.modal-body {
+  color: #334155 !important;
+}
+
+.modal-body strong {
+  color: #0f172a !important;
+}
+
+.modal-body .desc-box {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-left: 4px solid #2563eb !important;
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 10px;
+  color: #1e293b !important;
+  font-size: 14px;
+  line-height: 1.7;
+  box-shadow: none !important;
+}
+
+.modal-body .desc-box,
+.modal-body .desc-box p,
+.modal-body .desc-box span,
+.modal-body .desc-box div {
+  color: #1e293b !important;
+}

@@ -1,0 +1,322 @@
+:root {
+  --bg-surface: #ffffff;
+  --border-color: #cbd5e1;
+  --text-main: #293681;
+  --text-muted: #53698c;
+  --accent: #4274d9;
+  --accent-light: #d0e7e6;
+  --accent-mid: #95ccdd;
+  --font-main: "Poppins", sans-serif;
+  --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(
+    to right,
+    var(--accent-light),
+    var(--accent-mid),
+    var(--accent),
+    var(--text-main)
+  );
+  z-index: 9999;
+}
+
+body {
+  font-family: var(--font-main);
+  background: linear-gradient(135deg, #f8fbfa 0%, #d0e7e6 60%, #95ccdd 150%);
+  color: var(--text-main);
+  min-height: 100vh;
+  padding-top: 20px;
+}
+
+/* ═══ NAVBAR ═══ */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-surface);
+  padding: 15px 30px;
+  margin: 0 20px 20px 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(41, 54, 129, 0.05);
+  border: 1px solid var(--border-color);
+}
+
+.brand {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.brand span {
+  color: var(--accent);
+}
+
+.user-profile {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+.user-badge {
+  font-size: 14px;
+  font-weight: 500;
+  background: rgba(66, 116, 217, 0.1);
+  color: var(--accent);
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+.logout-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.logout-btn:hover {
+  background: #f1f5f9;
+  color: var(--text-main);
+}
+
+/* ═══ MAIN LAYOUT ═══ */
+.dashboard-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  padding: 0 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--bg-surface);
+  border-radius: 12px;
+  border: 1px solid rgba(149, 204, 221, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(41, 54, 129, 0.05);
+  padding: 30px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 25px;
+}
+
+/* ═══ FORM STYLES ═══ */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+}
+
+.input-wrapper {
+  position: relative;
+}
+.input-wrapper i {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent-mid);
+}
+
+.input-wrapper input,
+.input-wrapper select {
+  width: 100%;
+  padding: 14px 16px 14px 45px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-main);
+  transition: var(--transition);
+  outline: none;
+  background: #ffffff;
+}
+
+textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-main);
+  resize: vertical;
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(66, 116, 217, 0.15);
+}
+
+.submit-btn {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+.submit-btn:hover {
+  background: var(--text-main);
+  box-shadow: 0 10px 20px rgba(41, 54, 129, 0.2);
+  transform: translateY(-2px);
+}
+
+/* ═══ HISTORY LIST STYLES ═══ */
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 25px;
+}
+.refresh-btn {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+.refresh-btn:hover {
+  background: var(--accent-light);
+  color: var(--text-main);
+}
+
+.complaints-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Match the exact modal styling from the screenshot */
+.ticket-card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 20px;
+  transition: var(--transition);
+  background: #fafcff;
+}
+.ticket-card:hover {
+  border-color: var(--accent-mid);
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(41, 54, 129, 0.05);
+  transform: translateY(-2px);
+}
+
+.ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border-color);
+}
+.ticket-id {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-main);
+}
+.ticket-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ticket-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ticket-issue {
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ticket-issue i {
+  color: var(--accent);
+}
+
+.ticket-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+}
+
+/* Pill Badges matching screenshot exactly */
+.status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.status-PENDING {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+.status-ASSIGNED {
+  background: rgba(66, 116, 217, 0.15);
+  color: var(--accent);
+}
+.status-IN-PROGRESS {
+  background: #e0e7ff;
+  color: #4338ca;
+} /* Matches screenshot blue pill */
+.status-COMPLETED {
+  background: #dcfce7;
+  color: #166534;
+} /* Matches screenshot green pill */
+
+@media (max-width: 900px) {
+  .dashboard-container {
+    grid-template-columns: 1fr;
+  }
+}
