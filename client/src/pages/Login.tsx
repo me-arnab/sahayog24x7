@@ -33,72 +33,91 @@ export default function Login() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-bg">
       <Navbar />
       <div className="flex-1 flex items-center justify-center p-5">
-        <div className="bg-white/20 backdrop-blur-sm p-[30px] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.84)] w-[400px]">
+        <div className="bg-card border border-border rounded-2xl p-8 w-full max-w-[420px] shadow-lg shadow-blue-500/5">
           <div className="text-center mb-8">
-            <img
-              src="/frontend/assets/logo.png"
-              className="w-[60px] h-[60px] mx-auto mb-3"
-              alt="logo"
-            />
-            <h2 className="text-2xl font-bold text-[#1e293b]">Worker Login</h2>
-            <p className="text-sm text-[#64748b] mt-1">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/10 to-accent-cyan/10 flex items-center justify-center">
+              <img
+                src="/frontend/assets/logo.png"
+                className="w-10 h-10"
+                alt="logo"
+              />
+            </div>
+            <h2 className="text-2xl font-bold text-navy">Worker Login</h2>
+            <p className="text-sm text-text-muted mt-1">
               Sign in to view your assigned complaints
             </p>
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4 border border-red-200">
+            <div className="bg-red-50 text-error text-sm p-3 rounded-xl mb-5 border border-red-200 flex items-center gap-2">
+              <i className="fas fa-exclamation-circle"></i>
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-1">
-            <label className="text-[14px] font-bold text-[#334155]">
-              Employee ID
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. WB001"
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
-              className="w-full p-2.5 my-1.5 mb-3.5 rounded-lg border border-[#cbd5e1] focus:outline-none focus:border-[#047a3d] focus:shadow-[0_4px_12px_rgba(77,76,76,0.44)]"
-              required
-            />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                Employee ID
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. WB001"
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                required
+              />
+            </div>
 
-            <label className="text-[14px] font-bold text-[#334155]">
-              Password
-            </label>
-            <input
-              type="password"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2.5 my-1.5 mb-3.5 rounded-lg border border-[#cbd5e1] focus:outline-none focus:border-[#047a3d] focus:shadow-[0_4px_12px_rgba(77,76,76,0.44)]"
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                required
+              />
+            </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-black text-white text-lg rounded-lg cursor-pointer
-                transition-all hover:bg-[#333] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-gradient-to-r from-primary to-accent-cyan text-white
+                rounded-xl font-semibold text-sm cursor-pointer
+                shadow-md shadow-blue-500/20 transition-all
+                hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30
+                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                  Signing in...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <i className="fas fa-sign-in-alt"></i> Sign In
+                </span>
+              )}
             </button>
           </form>
 
-          <div className="text-center mt-5">
-            <Link to="/" className="text-[#048009] no-underline text-sm hover:underline">
-              <i className="fas fa-home"></i> Back to Home
+          <div className="text-center mt-6">
+            <Link to="/" className="text-primary text-sm font-medium no-underline hover:text-primary-light transition-colors">
+              <i className="fas fa-arrow-left mr-1.5"></i> Back to Home
             </Link>
           </div>
 
-          <div className="text-center mt-4 text-sm text-[#64748b]">
+          <div className="text-center mt-4 text-sm text-text-muted">
             Don't have an account?{" "}
-            <Link to="/register" className="text-[#048009] font-bold no-underline hover:underline">
+            <Link to="/register" className="text-primary font-semibold no-underline hover:text-primary-light transition-colors">
               Register
             </Link>
           </div>

@@ -8,6 +8,8 @@
     "install": "cd backend && npm install"
   },
   "dependencies": {
-    "mongodb": "^7.4.0"
+    "@tailwindcss/vite": "^4.3.2",
+    "mongodb": "^7.4.0",
+    "tailwindcss": "^4.3.2"
   }
 }

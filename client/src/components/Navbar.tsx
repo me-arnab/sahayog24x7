@@ -1,58 +1,36 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const logoText = (
-  <>
-    <span className="font-[Geom] font-semibold text-[30px] text-[#111]">
-      Sahayog
-    </span>
-    <span className="font-[Geom] font-semibold text-[30px] text-[rgb(255,103,2)]">
-      24
-    </span>
-    <span className="font-[Geom] font-semibold text-[30px] text-[rgb(25,159,255)]">
-      x
-    </span>
-    <span className="font-[Geom] font-semibold text-[30px] text-[rgb(0,136,50)]">
-      7
-    </span>
-  </>
-);
-
 export function Navbar() {
   const location = useLocation();
   const { worker, isAuthenticated, logout } = useAuth();
   const isHome = location.pathname === "/";
 
   return (
-    <header className="w-full px-[60px] py-5 flex items-center justify-between bg-transparent max-md:px-7 max-md:py-4">
-      <Link to="/" className="flex items-center gap-2.5 no-underline">
-        <div className="flex items-center gap-2.5">
+    <header className="sticky top-4 z-50 mx-auto max-w-7xl">
+      <nav className="mx-4 px-6 py-3 flex items-center justify-between bg-white/70 backdrop-blur-xl border border-border rounded-2xl shadow-lg shadow-blue-500/5">
+        <Link to="/" className="flex items-center gap-3 no-underline">
           <img
             src="/frontend/assets/logo.png"
-            className="w-[50px] h-[50px]"
+            className="w-10 h-10 rounded-lg"
             alt="logo"
           />
-          {logoText}
-        </div>
-      </Link>
+          <span className="text-xl font-bold text-navy">
+            Sahayog<span className="text-primary">24</span>
+            <span className="text-accent-cyan">x7</span>
+          </span>
+        </Link>
 
-      <nav>
-        <ul className="flex list-none gap-7 items-center max-md:gap-4 m-0 p-0">
+        <ul className="flex items-center gap-6 list-none m-0 p-0">
           {isHome && (
             <>
               <li>
-                <a
-                  href="#service"
-                  className="no-underline text-[#222] font-medium"
-                >
+                <a href="#service" className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors">
                   Our Services
                 </a>
               </li>
               <li>
-                <a
-                  href="#contact"
-                  className="no-underline text-[#222] font-medium"
-                >
+                <a href="#contact" className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors">
                   Contact Us
                 </a>
               </li>
@@ -60,7 +38,7 @@ export function Navbar() {
           )}
           {!isHome && (
             <li>
-              <Link to="/" className="no-underline text-[#222] font-medium">
+              <Link to="/" className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors">
                 Home
               </Link>
             </li>
@@ -69,20 +47,17 @@ export function Navbar() {
           {isAuthenticated ? (
             <>
               <li>
-                <Link
-                  to="/worker/dashboard"
-                  className="no-underline font-medium"
-                >
-                  <span className="bg-black text-white px-5 py-2.5 rounded-full text-sm font-semibold">
-                    👤 {worker?.name}
-                  </span>
-                </Link>
+                <span className="bg-gradient-to-r from-primary to-accent-cyan text-white px-5 py-2 rounded-full text-sm font-semibold shadow-md shadow-blue-500/20 inline-flex items-center gap-2">
+                  <i className="fas fa-user-circle text-sm"></i>
+                  {worker?.name}
+                </span>
               </li>
               <li>
                 <button
                   onClick={logout}
-                  className="bg-transparent border-2 border-[#e2e8f0] px-4 py-2 rounded-xl font-semibold text-sm cursor-pointer transition-all hover:border-[#4ecdc4] hover:bg-[#4ecdc4] hover:text-white"
+                  className="bg-white border border-border text-text-secondary px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer hover:border-error hover:text-error hover:bg-red-50 transition-all"
                 >
+                  <i className="fas fa-sign-out-alt mr-1.5"></i>
                   Logout
                 </button>
               </li>
@@ -90,14 +65,14 @@ export function Navbar() {
           ) : (
             <>
               <li>
-                <Link to="/login" className="no-underline text-[#222] font-medium">
+                <Link to="/login" className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors">
                   Login
                 </Link>
               </li>
               <li>
                 <Link
                   to="/register"
-                  className="no-underline bg-black text-white px-5 py-2.5 rounded-3xl font-bold text-sm inline-block"
+                  className="no-underline bg-gradient-to-r from-primary to-accent-cyan text-white px-6 py-2.5 rounded-xl font-semibold text-sm shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-0.5 transition-all"
                 >
                   Register
                 </Link>

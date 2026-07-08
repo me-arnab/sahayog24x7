@@ -36,125 +36,127 @@ export default function Register() {
       return;
     }
 
-    // TODO: Connect to backend register endpoint
     alert("Registration successful!\nConsumer ID: " + form.consumerId);
     navigate("/user/dashboard");
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-bg">
       <Navbar />
       <div className="flex-1 flex items-center justify-center p-5">
-        <div className="bg-white/20 backdrop-blur-sm p-[30px] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.84)] w-[400px]">
-          <div
-            className="text-center p-7 mb-[30px] rounded-[18px] border border-white/25
-              shadow-[0_10px_30px_rgba(0,0,0,0.1)]"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(235,156,37,0.35), rgba(34,197,94,0.35))",
-              backdropFilter: "blur(12px)",
-            }}
-          >
-            <h2 className="text-[30px] font-bold text-white mb-2">
-              Create Your Account
-            </h2>
-            <p className="text-sm text-white/90">
+        <div className="bg-card border border-border rounded-2xl p-8 w-full max-w-[460px] shadow-lg shadow-blue-500/5">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/10 to-accent-cyan/10 flex items-center justify-center">
+              <i className="fas fa-user-plus text-2xl text-primary"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-navy">Create Your Account</h2>
+            <p className="text-sm text-text-muted mt-1">
               Please fill in the details below to register
             </p>
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm mb-2.5">{error}</div>
+            <div className="bg-red-50 text-error text-sm p-3 rounded-xl mb-5 border border-red-200 flex items-center gap-2">
+              <i className="fas fa-exclamation-circle"></i>
+              {error}
+            </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-1">
-            <label className="text-[14px] font-bold text-[#334155]">
-              Full Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={form.name}
-              onChange={handleChange}
-              className="w-full p-2.5 my-1.5 mb-3.5 rounded-lg border border-[#cbd5e1] focus:outline-none focus:border-[#047a3d] focus:shadow-[0_4px_12px_rgba(77,76,76,0.44)]"
-              required
-            />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Full Name</label>
+              <input
+                id="name"
+                type="text"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Enter your full name"
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                required
+              />
+            </div>
 
-            <label className="text-[14px] font-bold text-[#334155]">
-              Consumer ID *
-            </label>
-            <input
-              id="consumerId"
-              type="text"
-              placeholder="e.g., CON123456"
-              value={form.consumerId}
-              onChange={handleChange}
-              className="w-full p-2.5 my-1.5 mb-3.5 rounded-lg border border-[#cbd5e1] focus:outline-none focus:border-[#047a3d] focus:shadow-[0_4px_12px_rgba(77,76,76,0.44)]"
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Consumer ID *</label>
+              <input
+                id="consumerId"
+                type="text"
+                placeholder="e.g., CON123456"
+                value={form.consumerId}
+                onChange={handleChange}
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                required
+              />
+            </div>
 
-            <label className="text-[14px] font-bold text-[#334155]">
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full p-2.5 my-1.5 mb-3.5 rounded-lg border border-[#cbd5e1] focus:outline-none focus:border-[#047a3d] focus:shadow-[0_4px_12px_rgba(77,76,76,0.44)]"
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Email Address</label>
+              <input
+                id="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                required
+              />
+            </div>
 
-            <label className="text-[14px] font-bold text-[#334155]">
-              Mobile Number
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              placeholder="+91 XXXXX XXXXX"
-              value={form.phone}
-              onChange={handleChange}
-              className="w-full p-2.5 my-1.5 mb-3.5 rounded-lg border border-[#cbd5e1] focus:outline-none focus:border-[#047a3d] focus:shadow-[0_4px_12px_rgba(77,76,76,0.44)]"
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Mobile Number</label>
+              <input
+                id="phone"
+                type="tel"
+                placeholder="+91 XXXXX XXXXX"
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                required
+              />
+            </div>
 
-            <label className="text-[14px] font-bold text-[#334155]">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              className="w-full p-2.5 my-1.5 mb-3.5 rounded-lg border border-[#cbd5e1] focus:outline-none focus:border-[#047a3d] focus:shadow-[0_4px_12px_rgba(77,76,76,0.44)]"
-              required
-            />
-
-            <label className="text-[14px] font-bold text-[#334155]">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              className="w-full p-2.5 my-1.5 mb-3.5 rounded-lg border border-[#cbd5e1] focus:outline-none focus:border-[#047a3d] focus:shadow-[0_4px_12px_rgba(77,76,76,0.44)]"
-              required
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="Min. 6 characters"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">Confirm Password</label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Re-enter password"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  required
+                />
+              </div>
+            </div>
 
             <button
               type="submit"
-              className="w-full py-3 bg-[#00662ac1] border-2 border-[#026a25] text-white/80
-                text-lg rounded-lg cursor-pointer transition-all hover:bg-[#018237]
-                hover:shadow-[0_4px_12px_rgb(1,68,48)]"
+              className="w-full py-3 bg-gradient-to-r from-primary to-accent-cyan text-white
+                rounded-xl font-semibold text-sm cursor-pointer mt-2
+                shadow-md shadow-blue-500/20 transition-all
+                hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30"
             >
+              <i className="fas fa-check-circle mr-2"></i>
               Register
             </button>
           </form>
 
-          <div className="text-center mt-4 text-lg">
+          <div className="text-center mt-6 text-sm text-text-muted">
             Already have an account?{" "}
-            <Link to="/login" className="text-[#048009] font-bold no-underline hover:underline">
+            <Link to="/login" className="text-primary font-semibold no-underline hover:text-primary-light transition-colors">
               Login
             </Link>
           </div>

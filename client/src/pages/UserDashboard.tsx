@@ -44,6 +44,25 @@ const initialStats: DashboardStats = {
   assigned: 0,
 };
 
+const priorityBadge = (priority: string) => {
+  const map: Record<string, string> = {
+    high: "bg-red-50 text-red-700",
+    medium: "bg-amber-50 text-amber-700",
+    low: "bg-green-50 text-green-700",
+  };
+  return `px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${map[priority] || "bg-slate-100 text-slate-600"}`;
+};
+
+const statusBadge = (status: string) => {
+  const map: Record<string, string> = {
+    received: "bg-blue-50 text-blue-700",
+    "in-progress": "bg-amber-50 text-amber-700",
+    resolved: "bg-green-50 text-green-700",
+    escalated: "bg-red-50 text-red-700",
+  };
+  return `px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${map[status] || "bg-slate-100 text-slate-600"}`;
+};
+
 export default function UserDashboard() {
   const [complaints, setComplaints] = useState<UserComplaint[]>(mockComplaints);
   const [stats] = useState<DashboardStats>(initialStats);
@@ -78,126 +97,121 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-bg">
       <Navbar />
-      <div className="max-w-[1600px] mx-auto p-5 w-full">
+      <div className="max-w-[1400px] mx-auto p-6 w-full space-y-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-6 mb-8">
+        <div className="grid grid-cols-4 gap-5 max-md:grid-cols-2 max-sm:grid-cols-1">
           {[
-            { icon: "📋", label: "Total Complaints", value: stats.total },
-            { icon: "⏳", label: "Pending", value: stats.pending },
-            { icon: "✅", label: "Resolved", value: stats.resolved },
-            { icon: "⭐", label: "Avg Rating", value: "4.2" },
+            { label: "Total Complaints", value: stats.total, icon: "fas fa-clipboard-list", color: "bg-primary/10 text-primary" },
+            { label: "Pending", value: stats.pending, icon: "fas fa-clock", color: "bg-amber-50 text-warning" },
+            { label: "Resolved", value: stats.resolved, icon: "fas fa-check-circle", color: "bg-green-50 text-success" },
+            { label: "Avg Rating", value: "4.2", icon: "fas fa-star", color: "bg-blue-50 text-primary" },
           ].map((s) => (
-            <div
-              key={s.label}
-              className="bg-white/20 backdrop-blur-lg p-[30px] rounded-[25px] text-center
-                shadow-[0_20px_40px_rgba(0,0,0,0.1)] border border-white/20
-                transition-all hover:-translate-y-2.5 hover:shadow-[0_30px_60px_rgba(0,0,0,0.15)] cursor-pointer"
-            >
-              <div className="text-5xl mb-4">{s.icon}</div>
-              <div className="text-4xl font-extrabold mb-1">{s.value}</div>
-              <div className="text-[#64748b] font-semibold text-base">{s.label}</div>
+            <div key={s.label} className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{s.label}</span>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm ${s.color}`}>
+                  <i className={s.icon}></i>
+                </div>
+              </div>
+              <div className="text-3xl font-bold text-navy">{s.value}</div>
             </div>
           ))}
         </div>
 
-        {/* Complaint List */}
-        <div className="bg-white/20 backdrop-blur-lg p-10 rounded-[25px] shadow-[0_20px_40px_rgba(0,0,0,0.1)] border border-white/20 mb-10">
-          <h2 className="text-[28px] font-extrabold mb-[30px] bg-gradient-to-r from-[#ff6b6b] to-[#4ecdc4] bg-clip-text text-transparent">
+        {/* My Recent Complaints */}
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
+          <h2 className="text-xl font-bold text-navy mb-6 flex items-center gap-2">
+            <i className="fas fa-history text-primary"></i>
             My Recent Complaints
           </h2>
-          <div className="flex flex-col gap-4">
-            {complaints.length === 0 && (
-              <div className="text-center text-[#64748b] py-10">No complaints yet.</div>
-            )}
-            {complaints.map((c) => (
-              <div
-                key={c.id}
-                className="flex gap-6 p-[30px] border-2 border-[#f1f5f9] rounded-[20px] mb-4
-                  cursor-pointer transition-all hover:border-[#4ecdc4] hover:-translate-y-1
-                  hover:shadow-[0_25px_50px_rgba(78,205,196,0.15)] bg-white/70 backdrop-blur-lg"
-              >
-                <div className="w-[60px] h-[60px] rounded-full bg-gradient-to-r from-[#006c18] to-[#00b4a6]
-                  flex items-center justify-center text-white font-extrabold text-2xl flex-shrink-0">
-                  {c.id.slice(-3)}
-                </div>
-                <div className="flex-1">
-                  <div className="text-xl font-bold mb-2 text-[#1e293b]">
-                    {c.issueType} ({c.status})
+          {complaints.length === 0 ? (
+            <div className="text-center py-12 text-text-muted">
+              <i className="fas fa-inbox text-3xl mb-3 block opacity-30"></i>
+              No complaints yet.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {complaints.map((c) => (
+                <div
+                  key={c.id}
+                  className="bg-bg border border-border rounded-2xl p-5 transition-all hover:border-primary/30 hover:shadow-md"
+                >
+                  <div className="flex gap-4 max-md:flex-col">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                      {c.id.slice(-3)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                        <span className="font-semibold text-navy text-sm">{c.issueType}</span>
+                        <span className={priorityBadge(c.priority)}>{c.priority}</span>
+                        <span className={statusBadge(c.status)}>{c.status}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-text-muted mb-2">
+                        <span><i className="fas fa-map-marker-alt mr-1"></i>{c.location}</span>
+                        <span>{new Date(c.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-sm text-text-secondary leading-relaxed line-clamp-1">
+                        {c.description}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex gap-5 mb-3 text-sm text-[#64748b] flex-wrap">
-                    <span className={`px-2 py-1 rounded-[25px] text-xs font-bold uppercase ${
-                      c.priority === "high" ? "bg-red-100 text-red-600" :
-                      c.priority === "medium" ? "bg-yellow-100 text-yellow-600" :
-                      "bg-green-100 text-green-600"
-                    }`}>
-                      {c.priority.toUpperCase()}
-                    </span>
-                    <span>{c.location}</span>
-                  </div>
-                  <p className="text-[#64748b] leading-relaxed">
-                    {c.description.substring(0, 100)}...
-                  </p>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Complaint Form */}
-        <div className="bg-white/60 backdrop-blur-lg p-10 rounded-[25px] shadow-[0_20px_40px_rgba(0,0,0,0.1)] border border-white/20">
-          <h2 className="text-[28px] font-extrabold mb-[30px] bg-gradient-to-r from-[#ff6b6b] to-[#4ecdc4] bg-clip-text text-transparent">
+        {/* Submit New Complaint */}
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
+          <h2 className="text-xl font-bold text-navy mb-6 flex items-center gap-2">
+            <i className="fas fa-plus-circle text-primary"></i>
             Submit New Complaint
           </h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
-            <div className="[grid-column:1/-1] grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
-              <div className="mb-6">
-                <label className="block mb-2 font-semibold text-[#334155]">Full Name</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                  placeholder="Enter your full name"
-                  className="w-full p-[18px] border-2 border-[#e2e8f0] rounded-[15px] text-base
-                    bg-white/40 focus:outline-none focus:border-[#4ecdc4] focus:shadow-[0_0_0_4px_rgba(78,205,196,0.1)]"
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block mb-2 font-semibold text-[#334155]">Phone Number *</label>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-                  placeholder="+91 12345 67890"
-                  required
-                  className="w-full p-[18px] border-2 border-[#e2e8f0] rounded-[15px] text-base
-                    bg-white/40 focus:outline-none focus:border-[#4ecdc4] focus:shadow-[0_0_0_4px_rgba(78,205,196,0.1)]"
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-5 max-md:grid-cols-1">
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Full Name</label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                placeholder="Enter your full name"
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+              />
             </div>
 
-            <div className="mb-6">
-              <label className="block mb-2 font-semibold text-[#334155]">Consumer ID *</label>
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number *</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                placeholder="+91 12345 67890"
+                required
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Consumer ID *</label>
               <input
                 type="text"
                 value={form.consumerId}
                 onChange={(e) => setForm((p) => ({ ...p, consumerId: e.target.value }))}
                 placeholder="Enter your consumer id"
                 required
-                className="w-full p-[18px] border-2 border-[#e2e8f0] rounded-[15px] text-base
-                  bg-white/40 focus:outline-none focus:border-[#4ecdc4] focus:shadow-[0_0_0_4px_rgba(78,205,196,0.1)]"
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
               />
             </div>
 
-            <div className="mb-6">
-              <label className="block mb-2 font-semibold text-[#334155]">Issue Type *</label>
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Issue Type *</label>
               <select
                 value={form.issueType}
                 onChange={(e) => setForm((p) => ({ ...p, issueType: e.target.value }))}
                 required
-                className="w-full p-[18px] border-2 border-[#e2e8f0] rounded-[15px] text-base
-                  bg-white/40 focus:outline-none focus:border-[#4ecdc4]"
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
               >
                 <option value="">Select Issue</option>
                 <option value="Power Outage">Power Outage</option>
@@ -209,26 +223,27 @@ export default function UserDashboard() {
               </select>
             </div>
 
-            <div className="[grid-column:1/-1]">
-              <label className="block mb-2 font-semibold text-[#334155]">Description *</label>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Description *</label>
               <textarea
                 rows={5}
                 value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                 placeholder="Describe your issue in detail..."
                 required
-                className="w-full p-[18px] border-2 border-[#e2e8f0] rounded-[15px] text-base
-                  bg-white/40 focus:outline-none focus:border-[#4ecdc4] focus:shadow-[0_0_0_4px_rgba(78,205,196,0.1)] resize-vertical"
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 resize-vertical"
               />
             </div>
 
-            <div className="[grid-column:1/-1]">
+            <div className="col-span-2">
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-[#006c18] to-[#00b4a6] text-white
-                  py-5 rounded-[15px] text-lg font-bold cursor-pointer
-                  transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(255,107,107,0.4)]"
+                className="w-full bg-gradient-to-r from-primary to-accent-cyan text-white
+                  py-4 rounded-xl font-semibold text-sm cursor-pointer
+                  shadow-md shadow-blue-500/20 transition-all
+                  hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30"
               >
+                <i className="fas fa-paper-plane mr-2"></i>
                 Submit Complaint
               </button>
             </div>
