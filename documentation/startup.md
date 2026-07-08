@@ -4,25 +4,25 @@
 
 Sahayog24x7 is a **Smart Electricity Grievance System** with:
 
-- **Frontend**: HTML, CSS, JavaScript (served statically by Express)
-- **Backend**: Node.js + Express + MongoDB
-- **Port**: `5000` (one server serves both frontend and API)
+- **Frontend**: React + TypeScript + Tailwind CSS v4 (Vite dev server on port 5173)
+- **Backend**: Node.js + Express + MongoDB (port 5000)
+- **Legacy Frontend**: Original HTML/CSS/JS files still in `frontend/` (served statically by Express)
 
 ---
 
 ## 📋 Prerequisites
 
-| Tool    | Version | Check Command                           |
-| ------- | ------- | --------------------------------------- |
-| Node.js | v18+    | `node --version`                        |
-| npm     | v9+     | `npm --version`                         |
+| Tool    | Version | Check Command          |
+| ------- | ------- | ---------------------- |
+| Node.js | v18+    | `node --version`       |
+| npm     | v9+     | `npm --version`        |
 | MongoDB | v6+     | `mongod --version` or use MongoDB Atlas |
 
 ---
 
 ## 🛠 Setup Steps
 
-### 1. Clone the project
+### 1. Clone and enter the project
 
 ```bash
 cd sahayog24x7
@@ -36,7 +36,15 @@ npm install
 cd ..
 ```
 
-### 3. Configure environment variables
+### 3. Install frontend dependencies
+
+```bash
+cd client
+npm install
+cd ..
+```
+
+### 4. Configure environment variables
 
 Edit `backend/.env`:
 
@@ -50,17 +58,65 @@ JWT_EXPIRES_IN=7d
 - **Local MongoDB**: Make sure `mongod` is running
 - **MongoDB Atlas**: Replace `MONGODB_URI` with your Atlas connection string
 
-### 4. Seed a test worker (required for login)
+---
 
-Start the server first (see below), then in another terminal:
+## ▶️ Start the Project
 
-**Command Prompt (cmd):**
+You need to run **two terminals** — one for the backend, one for the frontend.
+
+### Terminal 1: Backend (port 5000)
+
+**Option A: Production mode**
 
 ```bash
-curl -X POST http://localhost:5000/api/auth/seed ^
-  -H "Content-Type: application/json" ^
-  -d "{\"employeeId\": \"WB001\", \"name\": \"Rahul Das\", \"password\": \"password123\"}"
+cd backend
+npm start
 ```
+
+**Option B: Development mode (auto-restart with nodemon)**
+
+```bash
+cd backend
+npm run dev
+```
+
+The backend serves:
+
+- API at `http://localhost:5000/api/`
+- Legacy frontend files at `http://localhost:5000/`
+- **Important**: The default `app.js` serves the old `index.html` as root. The new React frontend runs separately on port 5173.
+
+### Terminal 2: React Frontend (port 5173)
+
+```bash
+cd client
+npm run dev
+```
+
+Then open **http://localhost:5173/** in your browser.
+
+The Vite dev server is configured to proxy `/api` requests to the backend (port 5000), so all API calls work seamlessly without CORS issues.
+
+---
+
+## 🌐 Available Pages
+
+| Page                     | URL (port 5173)           | Description                             |
+| ------------------------ | ------------------------- | --------------------------------------- |
+| Home                     | `/`                       | Landing page with hero, services, etc.  |
+| Register                 | `/register`               | Citizen registration form               |
+| Login                    | `/login`                  | Worker login (employeeId + password)    |
+| User Dashboard           | `/user/dashboard`         | Submit & track complaints (mock data)   |
+| Admin Dashboard          | `/admin/dashboard`        | Filter, search, manage complaints       |
+| Worker Dashboard         | `/worker/dashboard`       | Assigned complaints, start work, report |
+
+---
+
+## 🔐 Seeding Test Data (Worker Login)
+
+### Seed a test worker
+
+Start the backend server first, then:
 
 **Windows PowerShell:**
 
@@ -74,11 +130,17 @@ $body = @{
 Invoke-RestMethod -Uri http://localhost:5000/api/auth/seed -Method Post -ContentType "application/json" -Body $body
 ```
 
----
+**Linux / macOS / WSL:**
 
-### 5. Seed test complaints (required for the worker dashboard)
+```bash
+curl -X POST http://localhost:5000/api/auth/seed \
+  -H "Content-Type: application/json" \
+  -d '{"employeeId": "WB001", "name": "Rahul Das", "password": "password123"}'
+```
 
-After seeding a worker, assign sample complaints to them. The complaints will appear on the worker dashboard after login.
+### Seed test complaints for the worker
+
+After seeding the worker, assign sample complaints:
 
 **Windows PowerShell:**
 
@@ -129,59 +191,66 @@ $json = @'
 Invoke-RestMethod -Uri http://localhost:5000/api/complaints/seed -Method Post -ContentType "application/json" -Body $json
 ```
 
-> ✅ **Verify**: The server will respond with `"5 complaints created for Rahul Das"` and the full list of created complaints.
+**Linux / macOS / WSL:**
+
+```bash
+curl -X POST http://localhost:5000/api/complaints/seed \
+  -H "Content-Type: application/json" \
+  -d '{
+    "employeeId": "WB001",
+    "complaints": [
+      {"complaintId": "CMP-2024-001", "consumerName": "Ananya Roy", "address": "12/3 Ballygunge Place, Kolkata", "description": "No power supply for over 6 hours.", "priority": "CRITICAL"},
+      {"complaintId": "CMP-2024-002", "consumerName": "Suman Ghosh", "address": "45 Lake View Road, Flat 3B, Kolkata", "description": "Frequent voltage fluctuations.", "priority": "HIGH"},
+      {"complaintId": "CMP-2024-003", "consumerName": "Priya Banerjee", "address": "7B Rashbehari Avenue, Kolkata", "description": "Street light pole sparking.", "priority": "HIGH"},
+      {"complaintId": "CMP-2024-004", "consumerName": "Arun Das", "address": "89 Naktala Road, Kolkata", "description": "Single phase power supply issue.", "priority": "MEDIUM"},
+      {"complaintId": "CMP-2024-005", "consumerName": "Meera Iyer", "address": "22 Southern Avenue, Kolkata", "description": "No electricity entire building.", "priority": "CRITICAL"}
+    ]
+  }'
+```
+
+### Login to the Worker Dashboard
+
+1. Open http://localhost:5173/login
+2. Enter: Employee ID = `WB001`, Password = `password123`
+3. You'll be redirected to the Worker Dashboard showing the assigned complaints
 
 ---
 
-## ▶️ Start the Project
-
-### Option A: Start everything from root
-
-```bash
-npm start
-```
-
-This starts both:
-
-- **Backend API** on `http://localhost:5000/api/`
-- **Frontend** on `http://localhost:5000/`
-
-### Option B: Start just the backend
-
-```bash
-cd backend
-npm start        # production mode
-# OR
-npm run dev      # development mode (auto-restart with nodemon)
-```
-
----
-
-## 📂 Project Structure
+## 🧱 Project Structure
 
 ```
 sahayog24x7/
-├── index.html              # Landing page (served at /)
-├── dashboard.html          # User dashboard
-├── register.html           # Registration
-├── adminDashboard.html     # Admin panel
-├── userDashboard.html      # Worker dashboard
-├── assets/                 # Images, icons
-├── style/                  # CSS files
-├── js/                     # Frontend JavaScript
-├── backend/
-│   ├── package.json
-│   ├── .env
-│   ├── server.js           # Entry point
+├── client/                    # NEW: React + TypeScript frontend
+│   ├── src/
+│   │   ├── types/index.ts     # TypeScript interfaces
+│   │   ├── api/               # Axios API client + endpoint modules
+│   │   ├── context/           # AuthContext (JWT login/logout)
+│   │   ├── components/        # Navbar, Footer
+│   │   ├── pages/             # Home, Login, Register, 3 dashboards
+│   │   ├── App.tsx            # Router with 6 routes
+│   │   ├── main.tsx           # Entry point
+│   │   └── index.css          # Tailwind v4 + custom theme
+│   ├── vite.config.ts         # Vite config with API proxy
+│   └── index.html             # SPA shell
+│
+├── frontend/                  # Legacy HTML/CSS/JS (still served by backend)
+│   ├── html/
+│   ├── js/
+│   └── style/
+│
+├── backend/                   # Express + MongoDB API
+│   ├── server.js              # Entry point
+│   ├── .env                   # Environment config
 │   └── src/
-│       ├── app.js          # Express app
-│       ├── config/db.js    # MongoDB connection
-│       ├── models/         # Mongoose schemas
-│       ├── controllers/    # Route handlers
-│       ├── routes/         # Express routes
-│       ├── middleware/      # Auth, upload
-│       └── uploads/        # Photo uploads
-└── project_documentation/  # Specs & docs
+│       ├── app.js             # Express app setup
+│       ├── config/db.js       # MongoDB connection
+│       ├── models/            # Mongoose schemas
+│       ├── controllers/       # Route handlers
+│       ├── routes/            # Express routes
+│       ├── middleware/         # Auth, upload
+│       └── uploads/           # Photo uploads
+│
+└── documentation/             # Docs & guides
 ```
 
 ---
@@ -192,19 +261,23 @@ sahayog24x7/
 | ------ | --------------------------- | -------- | ------------------------ |
 | GET    | `/api/health`               | No       | Health check             |
 | POST   | `/api/auth/login`           | No       | Worker login             |
+| POST   | `/api/auth/seed`            | No       | Create test worker       |
 | GET    | `/api/complaints`           | JWT      | List assigned complaints |
 | GET    | `/api/complaints/:id`       | JWT      | Get complaint details    |
 | PUT    | `/api/complaints/:id/start` | JWT      | Start work               |
-| POST   | `/api/work-report`          | JWT+File | Submit work report       |
+| POST   | `/api/work-report/submit`   | JWT+File | Submit work report       |
 
 ---
 
 ## 🔧 Troubleshooting
 
-| Problem                   | Solution                                  |
-| ------------------------- | ----------------------------------------- |
-| `ECONNREFUSED` on MongoDB | Start MongoDB: `mongod --dbpath /data/db` |
-| `MODULE_NOT_FOUND`        | Run `npm install` in `backend/`           |
-| Port 5000 in use          | Change `PORT` in `.env`                   |
-| CORS errors               | Backend has CORS enabled by default       |
-| File upload fails         | Ensure `uploads/` directory exists        |
+| Problem                        | Solution                                        |
+| ------------------------------ | ----------------------------------------------- |
+| `ECONNREFUSED` on MongoDB      | Start MongoDB: `mongod --dbpath /data/db`       |
+| `MODULE_NOT_FOUND`             | Run `npm install` in `backend/` or `client/`    |
+| Port 5000 in use               | Change `PORT` in `backend/.env`                 |
+| Port 5173 in use               | Vite will auto-prompt for the next available    |
+| Network error on API calls     | Ensure backend is running on port 5000           |
+| Blank page on React frontend   | Check browser console for errors                |
+| CORS errors                    | Vite proxy forwards `/api` — no CORS needed     |
+| File upload fails              | Ensure `backend/src/uploads/` directory exists  |
