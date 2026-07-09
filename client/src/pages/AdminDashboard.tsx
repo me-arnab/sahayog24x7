@@ -12,7 +12,7 @@ const allComplaints: UserComplaint[] = [
     zone: "ward-5",
     issueType: "Power Outage",
     description: "Complete blackout since 10 PM. Entire street affected.",
-    priority: "high",
+    emergency: true,
     status: "received",
     createdAt: "2025-12-14T01:30:00",
     photoUrls: [],
@@ -27,7 +27,7 @@ const allComplaints: UserComplaint[] = [
     zone: "ward-2",
     issueType: "Low Voltage",
     description: "Voltage fluctuations causing appliances to malfunction.",
-    priority: "medium",
+    emergency: false,
     status: "in-progress",
     createdAt: "2025-12-13T22:45:00",
     photoUrls: [],
@@ -42,7 +42,7 @@ const allComplaints: UserComplaint[] = [
     zone: "ward-1",
     issueType: "Sparking Transformer",
     description: "Sparks from pole transformer. Safety hazard near school.",
-    priority: "high",
+    emergency: true,
     status: "received",
     createdAt: "2025-12-14T02:00:00",
     photoUrls: ["photo1.jpg"],
@@ -57,7 +57,7 @@ const allComplaints: UserComplaint[] = [
     zone: "ward-3",
     issueType: "Meter Fault",
     description: "Meter reading incorrect. Shows high usage despite no appliances running.",
-    priority: "low",
+    emergency: false,
     status: "resolved",
     createdAt: "2025-12-13T10:30:00",
     photoUrls: [],
@@ -76,20 +76,13 @@ const statusBadge = (status: string) => {
   return `px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${map[status] || "bg-slate-100 text-slate-600"}`;
 };
 
-const priorityBadge = (priority: string) => {
-  const map: Record<string, string> = {
-    high: "bg-red-50 text-red-700",
-    medium: "bg-amber-50 text-amber-700",
-    low: "bg-green-50 text-green-700",
-  };
-  return `px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${map[priority] || "bg-slate-100 text-slate-600"}`;
-};
+const emergencyBadge = (emergency: boolean) =>
+  emergency ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600";
 
 export default function AdminDashboard() {
   const [complaints] = useState(allComplaints);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
   const [zoneFilter, setZoneFilter] = useState("all");
   const [selectedComplaint, setSelectedComplaint] = useState<UserComplaint | null>(null);
 
@@ -102,18 +95,17 @@ export default function AdminDashboard() {
         c.issueType.toLowerCase().includes(search.toLowerCase()) ||
         c.description.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || c.status === statusFilter;
-      const matchPriority = priorityFilter === "all" || c.priority === priorityFilter;
       const matchZone = zoneFilter === "all" || c.zone === zoneFilter;
-      return matchSearch && matchStatus && matchPriority && matchZone;
+      return matchSearch && matchStatus && matchZone;
     });
-  }, [complaints, search, statusFilter, priorityFilter, zoneFilter]);
+  }, [complaints, search, statusFilter, zoneFilter]);
 
   const stats = useMemo(
     () => ({
       total: complaints.length,
       open: complaints.filter((c) => c.status !== "resolved").length,
       resolved: complaints.filter((c) => c.status === "resolved").length,
-      highPriority: complaints.filter((c) => c.priority === "high").length,
+      emergency: complaints.filter((c) => c.emergency).length,
     }),
     [complaints]
   );
@@ -121,7 +113,6 @@ export default function AdminDashboard() {
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("all");
-    setPriorityFilter("all");
     setZoneFilter("all");
   };
 
@@ -129,13 +120,12 @@ export default function AdminDashboard() {
     <div className="flex flex-col min-h-screen bg-bg">
       <Navbar />
       <div className="max-w-[1500px] mx-auto p-6 w-full">
-        {/* Stats Row */}
         <div className="grid grid-cols-4 gap-5 mb-6 max-md:grid-cols-2 max-sm:grid-cols-1">
           {[
             { label: "Total Complaints", value: stats.total, icon: "fas fa-clipboard-list", color: "bg-primary/10 text-primary" },
             { label: "Open", value: stats.open, icon: "fas fa-exclamation-circle", color: "bg-amber-50 text-warning" },
             { label: "Resolved", value: stats.resolved, icon: "fas fa-check-circle", color: "bg-green-50 text-success" },
-            { label: "High Priority", value: stats.highPriority, icon: "fas fa-arrow-up", color: "bg-red-50 text-error" },
+            { label: "Emergency", value: stats.emergency, icon: "fas fa-bolt", color: "bg-red-50 text-error" },
           ].map((s) => (
             <div key={s.label} className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
@@ -150,7 +140,6 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-[300px_1fr] gap-6 max-lg:grid-cols-1">
-          {/* Sidebar */}
           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm h-fit">
             <h3 className="text-lg font-bold text-navy mb-5 flex items-center gap-2">
               <i className="fas fa-sliders-h text-primary"></i> Filters
@@ -169,20 +158,6 @@ export default function AdminDashboard() {
                   <option value="in-progress">In Progress</option>
                   <option value="resolved">Resolved</option>
                   <option value="escalated">Escalated</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Priority</label>
-                <select
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="w-full p-2.5 border border-border rounded-xl bg-bg text-sm text-text-primary focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-                >
-                  <option value="all">All Priorities</option>
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
                 </select>
               </div>
 
@@ -219,12 +194,11 @@ export default function AdminDashboard() {
               <div className="flex justify-between"><span>Total:</span><span className="font-semibold text-navy">{stats.total}</span></div>
               <div className="flex justify-between"><span>Open:</span><span className="font-semibold text-warning">{stats.open}</span></div>
               <div className="flex justify-between"><span>Resolved:</span><span className="font-semibold text-success">{stats.resolved}</span></div>
+              <div className="flex justify-between"><span>Emergency:</span><span className="font-semibold text-error">{stats.emergency}</span></div>
             </div>
           </div>
 
-          {/* Main */}
           <div className="space-y-6">
-            {/* Header + Search */}
             <div className="flex items-center gap-4 bg-card border border-border rounded-2xl p-4 shadow-sm max-md:flex-col">
               <h2 className="text-lg font-bold text-navy whitespace-nowrap flex items-center gap-2">
                 <i className="fas fa-list-check text-primary"></i>
@@ -242,7 +216,6 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Complaint Cards */}
             <div className="space-y-3">
               {filtered.length === 0 && (
                 <div className="text-center py-16 text-text-muted bg-card border border-border rounded-2xl">
@@ -265,7 +238,9 @@ export default function AdminDashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <span className="font-semibold text-navy text-sm">{c.issueType}</span>
-                        <span className={priorityBadge(c.priority)}>{c.priority}</span>
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${emergencyBadge(c.emergency)}`}>
+                          {c.emergency ? "Emergency" : "Normal"}
+                        </span>
                         <span className={statusBadge(c.status)}>{c.status.replace("-", " ")}</span>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-text-muted mb-2">
@@ -292,7 +267,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Detail Modal */}
       {selectedComplaint && (
         <div
           className="fixed inset-0 bg-navy/60 backdrop-blur-sm z-50 flex items-center justify-center p-5"
@@ -330,8 +304,10 @@ export default function AdminDashboard() {
                   <p className="font-semibold text-navy">{selectedComplaint.citizenName}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-text-muted uppercase font-medium tracking-wider mb-1">Priority</p>
-                  <span className={priorityBadge(selectedComplaint.priority)}>{selectedComplaint.priority}</span>
+                  <p className="text-xs text-text-muted uppercase font-medium tracking-wider mb-1">Emergency</p>
+                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${emergencyBadge(selectedComplaint.emergency)}`}>
+                    {selectedComplaint.emergency ? "Yes" : "No"}
+                  </span>
                 </div>
                 <div>
                   <p className="text-xs text-text-muted uppercase font-medium tracking-wider mb-1">Phone</p>

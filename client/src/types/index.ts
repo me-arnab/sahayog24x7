@@ -17,7 +17,6 @@ export interface LoginCredentials {
 }
 
 // ─── Complaints ───
-export type ComplaintPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type ComplaintStatus =
   | "ASSIGNED"
   | "IN_PROGRESS"
@@ -33,7 +32,7 @@ export interface Complaint {
   consumerName: string;
   address: string;
   description: string;
-  priority: ComplaintPriority;
+  emergency: boolean;
   status: ComplaintStatus;
   assignedWorker: string | null;
   startTime: string | null;
@@ -68,7 +67,7 @@ export interface UserComplaint {
   zone: string;
   issueType: string;
   description: string;
-  priority: "high" | "medium" | "low";
+  emergency: boolean;
   status: string;
   createdAt: string;
   photoUrls: string[];

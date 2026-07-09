@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import logo from "../assets/logo.png";
 
 export function Navbar() {
   const location = useLocation();
@@ -11,9 +12,9 @@ export function Navbar() {
       <nav className="mx-4 px-6 py-3 flex items-center justify-between bg-white/70 backdrop-blur-xl border border-border rounded-2xl shadow-lg shadow-blue-500/5">
         <Link to="/" className="flex items-center gap-3 no-underline">
           <img
-            src="client/src/assets/logo.png"
+            src={logo}
             className="w-10 h-10 rounded-lg"
-            alt="logo"
+            alt="Sahayog24x7 Logo"
           />
           <span className="text-xl font-bold text-navy">
             Sahayog<span className="text-primary">24</span>
@@ -25,20 +26,30 @@ export function Navbar() {
           {isHome && (
             <>
               <li>
-                <a href="#service" className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors">
+                <a
+                  href="#service"
+                  className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors"
+                >
                   Our Services
                 </a>
               </li>
               <li>
-                <a href="#contact" className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors">
+                <a
+                  href="#contact"
+                  className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors"
+                >
                   Contact Us
                 </a>
               </li>
             </>
           )}
+
           {!isHome && (
             <li>
-              <Link to="/" className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors">
+              <Link
+                to="/"
+                className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors"
+              >
                 Home
               </Link>
             </li>
@@ -65,7 +76,10 @@ export function Navbar() {
           ) : (
             <>
               <li>
-                <Link to="/login" className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors">
+                <Link
+                  to="/login"
+                  className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors"
+                >
                   Login
                 </Link>
               </li>

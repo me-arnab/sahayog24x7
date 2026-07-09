@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
-
+import logo from "../assets/logo.png";
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -40,7 +40,7 @@ export default function Login() {
           <div className="text-center mb-8">
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/10 to-accent-cyan/10 flex items-center justify-center">
               <img
-                src="/frontend/assets/logo.png"
+                src={logo}
                 className="w-10 h-10"
                 alt="logo"
               />

@@ -79,7 +79,7 @@ Complaint Completed
   "consumerName": "Amit Kumar",
   "address": "Barrackpore",
   "description": "Transformer sparking",
-  "priority": "HIGH",
+  "emergency": true,
   "status": "ASSIGNED",
   "assignedWorker": "ObjectId",
   "startTime": null,

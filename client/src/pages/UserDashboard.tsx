@@ -12,7 +12,7 @@ const mockComplaints: UserComplaint[] = [
     zone: "ward-5",
     issueType: "Power Outage",
     description: "Complete blackout since 10 PM. Entire street affected.",
-    priority: "high",
+    emergency: true,
     status: "received",
     createdAt: "2025-12-14T01:30:00",
     photoUrls: [],
@@ -27,7 +27,7 @@ const mockComplaints: UserComplaint[] = [
     zone: "ward-2",
     issueType: "Low Voltage",
     description: "Voltage fluctuations causing appliances to malfunction.",
-    priority: "medium",
+    emergency: false,
     status: "in-progress",
     createdAt: "2025-12-13T22:45:00",
     photoUrls: [],
@@ -44,15 +44,6 @@ const initialStats: DashboardStats = {
   assigned: 0,
 };
 
-const priorityBadge = (priority: string) => {
-  const map: Record<string, string> = {
-    high: "bg-red-50 text-red-700",
-    medium: "bg-amber-50 text-amber-700",
-    low: "bg-green-50 text-green-700",
-  };
-  return `px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${map[priority] || "bg-slate-100 text-slate-600"}`;
-};
-
 const statusBadge = (status: string) => {
   const map: Record<string, string> = {
     received: "bg-blue-50 text-blue-700",
@@ -63,6 +54,9 @@ const statusBadge = (status: string) => {
   return `px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${map[status] || "bg-slate-100 text-slate-600"}`;
 };
 
+const emergencyBadge = (emergency: boolean) =>
+  emergency ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600";
+
 export default function UserDashboard() {
   const [complaints, setComplaints] = useState<UserComplaint[]>(mockComplaints);
   const [stats] = useState<DashboardStats>(initialStats);
@@ -72,10 +66,12 @@ export default function UserDashboard() {
     consumerId: "",
     issueType: "",
     description: "",
+    emergency: false,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     const newComplaint: UserComplaint = {
       id: "COMP-" + String(Math.floor(Math.random() * 1000)).padStart(3, "0"),
       citizenName: form.name || "Anonymous",
@@ -84,23 +80,30 @@ export default function UserDashboard() {
       zone: "ward-" + Math.floor(Math.random() * 5 + 1),
       issueType: form.issueType,
       description: form.description,
-      priority: Math.random() > 0.7 ? "high" : Math.random() > 0.5 ? "medium" : "low",
+      emergency: form.emergency,
       status: "received",
       createdAt: new Date().toISOString(),
       photoUrls: [],
       assignedTeam: null,
       isNew: true,
     };
+
     setComplaints((prev) => [newComplaint, ...prev]);
-    setForm({ name: "", phone: "", consumerId: "", issueType: "", description: "" });
-    alert(`✅ New complaint ${newComplaint.id} submitted!`);
+    setForm({
+      name: "",
+      phone: "",
+      consumerId: "",
+      issueType: "",
+      description: "",
+      emergency: false,
+    });
+    alert(`New complaint ${newComplaint.id} submitted!`);
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-bg">
       <Navbar />
       <div className="max-w-[1400px] mx-auto p-6 w-full space-y-8">
-        {/* Stats Cards */}
         <div className="grid grid-cols-4 gap-5 max-md:grid-cols-2 max-sm:grid-cols-1">
           {[
             { label: "Total Complaints", value: stats.total, icon: "fas fa-clipboard-list", color: "bg-primary/10 text-primary" },
@@ -120,7 +123,6 @@ export default function UserDashboard() {
           ))}
         </div>
 
-        {/* My Recent Complaints */}
         <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
           <h2 className="text-xl font-bold text-navy mb-6 flex items-center gap-2">
             <i className="fas fa-history text-primary"></i>
@@ -145,7 +147,9 @@ export default function UserDashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <span className="font-semibold text-navy text-sm">{c.issueType}</span>
-                        <span className={priorityBadge(c.priority)}>{c.priority}</span>
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${emergencyBadge(c.emergency)}`}>
+                          {c.emergency ? "Emergency" : "Normal"}
+                        </span>
                         <span className={statusBadge(c.status)}>{c.status}</span>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-text-muted mb-2">
@@ -163,7 +167,6 @@ export default function UserDashboard() {
           )}
         </div>
 
-        {/* Submit New Complaint */}
         <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
           <h2 className="text-xl font-bold text-navy mb-6 flex items-center gap-2">
             <i className="fas fa-plus-circle text-primary"></i>
@@ -221,6 +224,22 @@ export default function UserDashboard() {
                 <option value="Transformer Issue">Transformer Issue</option>
                 <option value="Billing Issue">Billing Issue</option>
               </select>
+            </div>
+
+            <div className="col-span-2 flex items-center justify-between rounded-xl border border-border bg-bg px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-text-secondary">Emergency</p>
+                <p className="text-xs text-text-muted">Mark this if the complaint needs urgent visibility.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.emergency}
+                  onChange={(e) => setForm((p) => ({ ...p, emergency: e.target.checked }))}
+                  className="sr-only peer"
+                />
+                <span className="w-12 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border after:border-slate-200 after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:after:translate-x-5"></span>
+              </label>
             </div>
 
             <div className="col-span-2">

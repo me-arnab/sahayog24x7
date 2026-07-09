@@ -8,7 +8,7 @@ import {
 } from "../api/complaints";
 import { submitWorkReport } from "../api/workReport";
 import type { Complaint } from "../types";
-
+import logo from "../assets/logo.png";
 export default function WorkerDashboard() {
   const navigate = useNavigate();
   const { worker, isAuthenticated, isLoading: authLoading, logout } = useAuth();
@@ -128,7 +128,7 @@ export default function WorkerDashboard() {
         <nav className="bg-card backdrop-blur-xl p-4 rounded-2xl mb-6 flex justify-between items-center shadow-sm border border-border">
           <div className="flex items-center gap-3">
             <img
-              src="/frontend/assets/logo.png"
+              src={logo}
               className="w-9 h-9 rounded-lg"
               alt="logo"
             />
@@ -234,14 +234,12 @@ export default function WorkerDashboard() {
                     </span>
                     <span
                       className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
-                        c.priority === "HIGH" || c.priority === "CRITICAL"
+                        c.emergency
                           ? "bg-red-50 text-red-700"
-                          : c.priority === "MEDIUM"
-                          ? "bg-amber-50 text-amber-700"
-                          : "bg-green-50 text-green-700"
+                          : "bg-slate-100 text-slate-600"
                       }`}
                     >
-                      {c.priority}
+                      {c.emergency ? "Emergency" : "Normal"}
                     </span>
                   </div>
                 </div>
@@ -298,17 +296,15 @@ export default function WorkerDashboard() {
                   <p className="font-semibold text-navy">{selectedComplaint.consumerName}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-text-muted uppercase font-medium tracking-wider mb-1">Priority</p>
+                  <p className="text-xs text-text-muted uppercase font-medium tracking-wider mb-1">Emergency</p>
                   <span
                     className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
-                      selectedComplaint.priority === "HIGH" || selectedComplaint.priority === "CRITICAL"
+                      selectedComplaint.emergency
                         ? "bg-red-50 text-red-700"
-                        : selectedComplaint.priority === "MEDIUM"
-                        ? "bg-amber-50 text-amber-700"
-                        : "bg-green-50 text-green-700"
+                        : "bg-slate-100 text-slate-600"
                     }`}
                   >
-                    {selectedComplaint.priority}
+                    {selectedComplaint.emergency ? "Yes" : "No"}
                   </span>
                 </div>
                 <div className="col-span-2">

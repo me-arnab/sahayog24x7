@@ -1,32 +1,165 @@
 import { Link } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
+import img1 from "../assets/1.png";
+import img2 from "../assets/2.png";
+import img3 from "../assets/3.png";
+import img4 from "../assets/4.png";
+import img5 from "../assets/5.png";
+import img6 from "../assets/6.png";
+import img7 from "../assets/7.png";
+import img8 from "../assets/8.png";
+import img9 from "../assets/9.png";
+import img10 from "../assets/10.png";
+
 
 const services = [
-  { name: "Power Outage", img: "client/src/assets/1.png" },
-  { name: "Low Voltage", img: "client/src/assets/2.png" },
-  { name: "Sparking Hazard", img: "client/src/assets/3.png" },
-  { name: "Meter Fault", img: "client/src/assets/4.png" },
-  { name: "Transformer Issue", img: "client/src/assets/5.png" },
-  { name: "Billing Issue", img: "client/src/assets/6.png" },
-  { name: "Street Light", img: "client/src/assets/7.png" },
-  { name: "Line Maintenance", img: "client/src/assets/8.png" },
-  { name: "Emergency", img: "client/src/assets/9.png" },
-  { name: "Other", img: "client/src/assets/10.png" },
+  { name: "Power Outage", img: img1 },
+  { name: "Low Voltage", img: img2 },
+  { name: "Sparking Hazard", img: img3 },
+  { name: "Meter Fault", img: img4 },
+  { name: "Transformer Issue", img: img5 },
+  { name: "Billing Issue", img: img6 },
+  { name: "Street Light", img: img7 },
+  { name: "Line Maintenance", img: img8 },
+  { name: "Emergency", img: img9 },
+  { name: "Other", img: img10 },  
 ];
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Electric background animation styles */}
+      <style>{`
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 0.6; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.08); }
+        }
+        @keyframes drift {
+          0% { transform: translate(0, 0); }
+          33% { transform: translate(20px, -15px); }
+          66% { transform: translate(-15px, 10px); }
+          100% { transform: translate(0, 0); }
+        }
+        @keyframes current-flow {
+          0% { stroke-dashoffset: 400; }
+          100% { stroke-dashoffset: 0; }
+        }
+        @keyframes flicker {
+          0%, 19%, 21%, 23%, 100% { opacity: 1; }
+          20%, 22% { opacity: 0.4; }
+        }
+        @keyframes spark-rise {
+          0% { transform: translateY(0) scale(0.6); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 0.8; }
+          100% { transform: translateY(-120px) scale(1.1); opacity: 0; }
+        }
+        @keyframes bolt-glow {
+          0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
+          50% { filter: drop-shadow(0 0 8px currentColor); }
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 4s ease-in-out infinite;
+        }
+        .animate-pulse-glow-slow {
+          animation: pulse-glow 6s ease-in-out infinite;
+        }
+        .animate-drift {
+          animation: drift 8s ease-in-out infinite;
+        }
+        .animate-drift-slow {
+          animation: drift 12s ease-in-out infinite;
+        }
+        .electric-line {
+          stroke-dasharray: 12 8;
+          animation: current-flow 2.5s linear infinite, flicker 5s linear infinite;
+        }
+        .electric-line-slow {
+          stroke-dasharray: 10 14;
+          animation: current-flow 4s linear infinite, flicker 7s linear infinite;
+        }
+        .spark-particle {
+          animation: spark-rise linear infinite;
+        }
+        .bolt-icon {
+          animation: bolt-glow 2s ease-in-out infinite;
+        }
+      `}</style>
+
       <Navbar />
 
-      {/* Hero */}
+    {/* Hero */}
       <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-6 py-16 overflow-hidden">
         {/* Layered gradient background */}
         <div className="absolute inset-0 bg-navy" />
-        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-primary/20 blur-[120px]" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-accent-cyan/15 blur-[100px]" />
-        <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full bg-primary-light/10 blur-[80px]" />
+        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-primary/20 blur-[120px] animate-pulse-glow" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-accent-cyan/15 blur-[100px] animate-pulse-glow-slow" />
+        <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full bg-primary-light/10 blur-[80px] animate-drift" />
+
+        {/* Animated electric current lines with moving current dots */}
+        <svg
+          className="absolute inset-0 w-full h-full opacity-40 pointer-events-none"
+          viewBox="0 0 1200 800"
+          preserveAspectRatio="none"
+        >
+          <path
+            id="wire-1"
+            className="electric-line text-accent-cyan-light"
+            d="M -50 150 L 250 150 L 300 220 L 550 220 L 600 120 L 900 120 L 950 260 L 1250 260"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="none"
+            opacity="0.5"
+          />
+          <path
+            id="wire-2"
+            className="electric-line-slow text-primary-light"
+            d="M -50 550 L 200 550 L 260 460 L 500 460 L 560 600 L 850 600 L 900 500 L 1250 500"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="none"
+            opacity="0.4"
+          />
+          <path
+            id="wire-3"
+            className="electric-line text-accent-cyan"
+            d="M -50 680 L 180 680 L 230 630 L 420 630 L 470 700 L 700 700"
+            stroke="currentColor"
+            strokeWidth="1"
+            fill="none"
+            opacity="0.3"
+          />
+
+          {/* Moving current orbs traveling along the wires */}
+          <circle r="5" fill="#67e8f9" opacity="0.9">
+            <animateMotion dur="4s" repeatCount="indefinite">
+              <mpath href="#wire-1" />
+            </animateMotion>
+          </circle>
+          <circle r="4" fill="#93c5fd" opacity="0.8">
+            <animateMotion dur="4s" begin="1.5s" repeatCount="indefinite">
+              <mpath href="#wire-1" />
+            </animateMotion>
+          </circle>
+
+          <circle r="5" fill="#a5b4fc" opacity="0.85">
+            <animateMotion dur="5.5s" repeatCount="indefinite">
+              <mpath href="#wire-2" />
+            </animateMotion>
+          </circle>
+          <circle r="3.5" fill="#67e8f9" opacity="0.7">
+            <animateMotion dur="5.5s" begin="2.2s" repeatCount="indefinite">
+              <mpath href="#wire-2" />
+            </animateMotion>
+          </circle>
+
+          <circle r="4" fill="#22d3ee" opacity="0.8">
+            <animateMotion dur="3.2s" repeatCount="indefinite">
+              <mpath href="#wire-3" />
+            </animateMotion>
+          </circle>
+        </svg>
 
         <div className="relative z-10 w-full max-w-[900px]">
           {/* Mini tiles */}
@@ -40,7 +173,9 @@ export default function Home() {
                     text-sm font-medium text-accent-cyan-light transition-all
                     hover:-translate-y-0.5 hover:bg-white/15"
                 >
-                  {tile}
+                  <span className={tile.startsWith("⚡") ? "bolt-icon inline-block" : ""}>
+                    {tile}
+                  </span>
                 </div>
               )
             )}

@@ -1,8 +1,10 @@
 const mongoose = require("mongoose");
 const dns = require("node:dns");
 
-// Prefer IPv4 and use Google DNS to avoid Windows DNS SRV issues
+// Prefer IPv4 and use public DNS to avoid Windows DNS SRV issues
+// This helps Node resolve MongoDB Atlas SRV records reliably.
 dns.setDefaultResultOrder("ipv4first");
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const ATLAS_SRV_URI =
   "mongodb+srv://arnabme2005_db_user:Qlaf2UNT6RQ2iKBy@complains.quakjti.mongodb.net/?appName=Complains";

@@ -19,7 +19,11 @@ exports.seedComplaints = async (req, res) => {
       consumerName: c.consumerName,
       address: c.address,
       description: c.description,
-      priority: c.priority || "MEDIUM",
+      emergency:
+        c.emergency === true ||
+        c.emergency === "true" ||
+        c.emergency === 1 ||
+        c.emergency === "1",
       status: "ASSIGNED",
       assignedWorker: worker._id,
     }));
@@ -40,7 +44,7 @@ exports.getAssignedComplaints = async (req, res) => {
   try {
     const complaints = await Complaint.find({
       assignedWorker: req.worker._id,
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: 1 });
 
     res.json(complaints);
   } catch (error) {
