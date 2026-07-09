@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Serve frontend static files (HTML, CSS, JS, assets)
-app.use(express.static(path.join(__dirname, "..", "..")));
+// app.use(express.static(path.join(__dirname, "..", "..")));
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -30,11 +30,20 @@ app.get("/api/health", (req, res) => {
 });
 
 // SPA fallback — serve index.html for unknown routes (excl. /api)
-app.get("*", (req, res) => {
+// app.get("*", (req, res) => {
+//   if (req.path.startsWith("/api")) {
+//     return res.status(404).json({ message: "API route not found" });
+//   }
+//   res.sendFile(path.join(__dirname, "..", "..", "index.html"));
+// });
+
+// 404 for non-existing routes
+app.use((req, res) => {
   if (req.path.startsWith("/api")) {
     return res.status(404).json({ message: "API route not found" });
   }
-  res.sendFile(path.join(__dirname, "..", "..", "index.html"));
+
+  res.status(404).json({ message: "Frontend is served by Vite." });
 });
 
 module.exports = app;

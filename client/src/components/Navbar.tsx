@@ -11,7 +11,7 @@ export function Navbar() {
       <nav className="mx-4 px-6 py-3 flex items-center justify-between bg-white/70 backdrop-blur-xl border border-border rounded-2xl shadow-lg shadow-blue-500/5">
         <Link to="/" className="flex items-center gap-3 no-underline">
           <img
-            src="/frontend/assets/logo.png"
+            src="client/src/assets/logo.png"
             className="w-10 h-10 rounded-lg"
             alt="logo"
           />

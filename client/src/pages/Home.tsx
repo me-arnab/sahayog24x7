@@ -3,16 +3,16 @@ import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 
 const services = [
-  { name: "Power Outage", img: "/frontend/assets/1.png" },
-  { name: "Low Voltage", img: "/frontend/assets/2.png" },
-  { name: "Sparking Hazard", img: "/frontend/assets/3.png" },
-  { name: "Meter Fault", img: "/frontend/assets/4.png" },
-  { name: "Transformer Issue", img: "/frontend/assets/5.png" },
-  { name: "Billing Issue", img: "/frontend/assets/6.png" },
-  { name: "Street Light", img: "/frontend/assets/7.png" },
-  { name: "Line Maintenance", img: "/frontend/assets/8.png" },
-  { name: "Emergency", img: "/frontend/assets/9.png" },
-  { name: "Other", img: "/frontend/assets/10.png" },
+  { name: "Power Outage", img: "client/src/assets/1.png" },
+  { name: "Low Voltage", img: "client/src/assets/2.png" },
+  { name: "Sparking Hazard", img: "client/src/assets/3.png" },
+  { name: "Meter Fault", img: "client/src/assets/4.png" },
+  { name: "Transformer Issue", img: "client/src/assets/5.png" },
+  { name: "Billing Issue", img: "client/src/assets/6.png" },
+  { name: "Street Light", img: "client/src/assets/7.png" },
+  { name: "Line Maintenance", img: "client/src/assets/8.png" },
+  { name: "Emergency", img: "client/src/assets/9.png" },
+  { name: "Other", img: "client/src/assets/10.png" },
 ];
 
 export default function Home() {
