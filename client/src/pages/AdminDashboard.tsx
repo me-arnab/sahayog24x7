@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { getAdminComplaints } from "../api/complaints";
@@ -110,6 +111,20 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-[300px_1fr] gap-6 max-lg:grid-cols-1">
           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm h-fit">
+            <h3 className="text-lg font-bold text-navy mb-4 flex items-center gap-2">
+              <i className="fas fa-bolt text-primary"></i> Quick Actions
+            </h3>
+            <div className="mb-6">
+              <Link
+                to="/admin/notices"
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-primary to-accent-cyan text-white rounded-xl font-semibold text-sm shadow-md shadow-blue-500/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30 transition-all no-underline"
+              >
+                <i className="fas fa-bullhorn"></i> Manage Notices
+              </Link>
+            </div>
+
+            <hr className="my-6 border-border" />
+
             <h3 className="text-lg font-bold text-navy mb-5 flex items-center gap-2">
               <i className="fas fa-sliders-h text-primary"></i> Filters
             </h3>

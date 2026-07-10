@@ -7,6 +7,21 @@ const Worker = require("../models/Worker");
 const fallbackWorkers = new Map();
 const fallbackUsers = new Map();
 
+// Inject a default admin for testing when DB is unavailable
+bcrypt.hash("Admin123!", 10).then((hashed) => {
+  fallbackUsers.set("admin@sahayog24x7.com", {
+    _id: "admin-fallback-id",
+    name: "System Admin",
+    email: "admin@sahayog24x7.com",
+    phone: "9999999999",
+    consumerId: "ADMIN-001",
+    password: hashed,
+    role: "admin",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+});
+
 // Fallback secret so login works without a .env file
 const JWT_SECRET = process.env.JWT_SECRET || "sahayog24x7_jwt_fallback_secret_2024";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
