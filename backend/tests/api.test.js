@@ -183,6 +183,15 @@ async function run() {
     return { pass: true };
   });
 
+  await test("12b. Submit Report via /submit route — Missing Fields (400)", async () => {
+    const r = await request("POST", "/api/work-report/submit", {
+      token: TOKEN,
+      body: { complaintId: "000000000000000000000000" },
+    });
+    assert(r.status === 400, `Expected 400, got ${r.status}`);
+    return { pass: true };
+  });
+
   // ── Test 13: Full Workflow ──
   // This requires a pre-seeded complaint in the DB. We attempt it but note it's partial without DB seed.
   await test("13a. Get Assigned Complaints (may be empty)", async () => {

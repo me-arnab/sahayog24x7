@@ -6,7 +6,7 @@
 
 const API_BASE = ""; // same origin via Express static, so relative works
 
-let authToken = localStorage.getItem("workerToken");
+let authToken = localStorage.getItem("token") || localStorage.getItem("workerToken");
 let workerData = null;
 let currentComplaintId = null;
 
@@ -132,6 +132,7 @@ function initLoginForm() {
 
       authToken = res.token;
       workerData = res.worker;
+      localStorage.setItem("token", authToken);
       localStorage.setItem("workerToken", authToken);
 
       showDashboard();
@@ -152,6 +153,7 @@ async function verifyAndLoadDashboard() {
     showDashboard();
   } catch {
     // Token invalid
+    localStorage.removeItem("token");
     localStorage.removeItem("workerToken");
     authToken = null;
     showLogin();
@@ -177,6 +179,7 @@ function showDashboard() {
 }
 
 function logout() {
+  localStorage.removeItem("token");
   localStorage.removeItem("workerToken");
   authToken = null;
   workerData = null;

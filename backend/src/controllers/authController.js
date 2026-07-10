@@ -1,9 +1,11 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const User = require("../models/User");
 const Worker = require("../models/Worker");
 
 const fallbackWorkers = new Map();
+const fallbackUsers = new Map();
 
 // Fallback secret so login works without a .env file
 const JWT_SECRET = process.env.JWT_SECRET || "sahayog24x7_jwt_fallback_secret_2024";
@@ -26,6 +28,184 @@ const fallbackCreateWorker = async ({ employeeId, name, password }) => {
 
   fallbackWorkers.set(employeeId, worker);
   return worker;
+};
+
+const fallbackFindUser = async (identifier) => {
+  if (fallbackUsers.has(identifier.email)) {
+    return fallbackUsers.get(identifier.email);
+  }
+
+  if (fallbackUsers.has(identifier.consumerId)) {
+    return fallbackUsers.get(identifier.consumerId);
+  }
+
+  return null;
+};
+
+const fallbackCreateUser = async ({ name, email, phone, consumerId, password }) => {
+  const user = {
+    _id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name,
+    email,
+    phone,
+    consumerId,
+    password,
+    role: "user",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  fallbackUsers.set(email, user);
+  fallbackUsers.set(consumerId, user);
+  return user;
+};
+
+exports.register = async (req, res) => {
+  try {
+    const { name, email, phone, consumerId, password } = req.body;
+
+    if (!name || !email || !phone || !consumerId || !password) {
+      return res.status(400).json({
+        message: "name, email, phone, consumerId, and password are required",
+      });
+    }
+
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters long" });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const trimmedName = String(name).trim();
+    const trimmedPhone = String(phone).trim();
+    const trimmedConsumerId = String(consumerId).trim();
+
+    if (!isMongoReady()) {
+      console.warn("MongoDB unavailable; using in-memory citizen store for auth");
+      const existing = await fallbackFindUser({
+        email: normalizedEmail,
+        consumerId: trimmedConsumerId,
+      });
+
+      if (existing) {
+        return res.status(409).json({
+          message: "User already exists with this email or consumerId",
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await fallbackCreateUser({
+        name: trimmedName,
+        email: normalizedEmail,
+        phone: trimmedPhone,
+        consumerId: trimmedConsumerId,
+        password: hashedPassword,
+      });
+
+      const token = jwt.sign(
+        { id: user._id, email: user.email, role: user.role },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES_IN }
+      );
+
+      return res.status(201).json({
+        message: "User registered successfully",
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          consumerId: user.consumerId,
+          role: user.role,
+        },
+      });
+    }
+
+    const existing = await User.findOne({
+      $or: [{ email: normalizedEmail }, { consumerId: trimmedConsumerId }],
+    });
+
+    if (existing) {
+      return res.status(409).json({
+        message: "User already exists with this email or consumerId",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      name: trimmedName,
+      email: normalizedEmail,
+      phone: trimmedPhone,
+      consumerId: trimmedConsumerId,
+      password: hashedPassword,
+    });
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    res.status(201).json({
+      message: "User registered successfully",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        consumerId: user.consumerId,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    if (!isMongoReady() || /ECONNREFUSED|ENOTFOUND|querySrv|timed out/i.test(error.message)) {
+      console.warn("MongoDB unavailable; using in-memory citizen store for auth");
+      const existing = await fallbackFindUser({
+        email: String(req.body.email || "").trim().toLowerCase(),
+        consumerId: String(req.body.consumerId || "").trim(),
+      });
+
+      if (existing) {
+        return res.status(409).json({
+          message: "User already exists with this email or consumerId",
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
+      const user = await fallbackCreateUser({
+        name: String(req.body.name || "").trim(),
+        email: String(req.body.email || "").trim().toLowerCase(),
+        phone: String(req.body.phone || "").trim(),
+        consumerId: String(req.body.consumerId || "").trim(),
+        password: hashedPassword,
+      });
+
+      const token = jwt.sign(
+        { id: user._id, email: user.email, role: user.role },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES_IN }
+      );
+
+      return res.status(201).json({
+        message: "User registered successfully",
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          consumerId: user.consumerId,
+          role: user.role,
+        },
+      });
+    }
+
+    console.error("Register error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 exports.seedWorker = async (req, res) => {
@@ -100,7 +280,89 @@ exports.seedWorker = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { employeeId, password } = req.body;
+    const { employeeId, identifier, password, accountType } = req.body;
+
+    const loginAsCitizen =
+      accountType === "user" || (!employeeId && !!identifier);
+
+    if (loginAsCitizen) {
+      const loginIdentifier = String(identifier || req.body.email || req.body.consumerId || "").trim();
+
+      if (!loginIdentifier || !password) {
+        return res
+          .status(400)
+          .json({ message: "Email/Consumer ID and password are required" });
+      }
+
+      if (!isMongoReady()) {
+        console.warn("MongoDB unavailable; using in-memory citizen store for auth");
+        const user = await fallbackFindUser({
+          email: loginIdentifier.toLowerCase(),
+          consumerId: loginIdentifier,
+        });
+
+        if (!user) {
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        const token = jwt.sign(
+          { id: user._id, email: user.email, role: user.role, accountType: "user" },
+          JWT_SECRET,
+          { expiresIn: JWT_EXPIRES_IN }
+        );
+
+        return res.json({
+          token,
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            consumerId: user.consumerId,
+            role: user.role,
+          },
+        });
+      }
+
+      const user = await User.findOne({
+        $or: [
+          { email: loginIdentifier.toLowerCase() },
+          { consumerId: loginIdentifier },
+        ],
+      });
+
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const token = jwt.sign(
+        { id: user._id, email: user.email, role: user.role, accountType: "user" },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES_IN }
+      );
+
+      return res.json({
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          consumerId: user.consumerId,
+          role: user.role,
+        },
+      });
+    }
 
     if (!employeeId || !password) {
       return res
@@ -121,7 +383,12 @@ exports.login = async (req, res) => {
       }
 
       const token = jwt.sign(
-        { id: worker._id, employeeId: worker.employeeId, role: worker.role },
+        {
+          id: worker._id,
+          employeeId: worker.employeeId,
+          role: worker.role,
+          accountType: "worker",
+        },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }
       );
@@ -148,7 +415,12 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: worker._id, employeeId: worker.employeeId, role: worker.role },
+      {
+        id: worker._id,
+        employeeId: worker.employeeId,
+        role: worker.role,
+        accountType: "worker",
+      },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
@@ -176,7 +448,12 @@ exports.login = async (req, res) => {
       }
 
       const token = jwt.sign(
-        { id: worker._id, employeeId: worker.employeeId, role: worker.role },
+        {
+          id: worker._id,
+          employeeId: worker.employeeId,
+          role: worker.role,
+          accountType: "worker",
+        },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }
       );

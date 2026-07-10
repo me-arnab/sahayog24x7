@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 const Worker = require("../models/Worker");
 
 const JWT_SECRET = process.env.JWT_SECRET || "sahayog24x7_jwt_fallback_secret_2024";
@@ -13,12 +14,25 @@ const auth = async (req, res, next) => {
     const token = header.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET);
 
+    if (decoded.accountType === "user") {
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+
+      req.user = user;
+      req.citizen = user;
+      req.authType = "user";
+      return next();
+    }
+
     const worker = await Worker.findById(decoded.id);
     if (!worker) {
       return res.status(401).json({ message: "Invalid token" });
     }
 
     req.worker = worker;
+    req.authType = "worker";
     next();
   } catch (error) {
     return res.status(401).json({ message: "Authentication failed" });

@@ -1,5 +1,6 @@
 const Complaint = require("../models/Complaint");
 const WorkReport = require("../models/WorkReport");
+const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
 
@@ -18,7 +19,11 @@ exports.submitReport = async (req, res) => {
       return res.status(400).json({ message: "After photo is required" });
     }
 
-    const complaint = await Complaint.findById(complaintId);
+    const complaintQuery = mongoose.Types.ObjectId.isValid(complaintId)
+      ? { _id: complaintId }
+      : { complaintId };
+
+    const complaint = await Complaint.findOne(complaintQuery);
     if (!complaint) {
       return res.status(404).json({ message: "Complaint not found" });
     }
@@ -50,7 +55,11 @@ exports.submitReport = async (req, res) => {
     );
     await complaint.save();
 
-    res.status(201).json({ workReport, complaint });
+    res.status(201).json({
+      message: "Work report submitted successfully",
+      workReport,
+      complaint,
+    });
   } catch (error) {
     console.error("Submit report error:", error);
 

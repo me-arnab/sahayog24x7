@@ -1,115 +1,168 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
-import type { UserComplaint, DashboardStats } from "../types";
+import { useAuth } from "../context/AuthContext";
+import { createComplaint, getMyComplaints } from "../api/complaints";
+import type { CitizenComplaint, CitizenUser, DashboardStats } from "../types";
 
-const mockComplaints: UserComplaint[] = [
-  {
-    id: "COMP-001",
-    citizenName: "Ramesh Kumar",
-    phone: "+91-9876543210",
-    location: "Ward 5, Street 3",
-    zone: "ward-5",
-    issueType: "Power Outage",
-    description: "Complete blackout since 10 PM. Entire street affected.",
-    emergency: true,
-    status: "received",
-    createdAt: "2025-12-14T01:30:00",
-    photoUrls: [],
-    assignedTeam: null,
-    isNew: false,
-  },
-  {
-    id: "COMP-002",
-    citizenName: "Priya Sharma",
-    phone: "+91-9876543211",
-    location: "Ward 2, Park Road",
-    zone: "ward-2",
-    issueType: "Low Voltage",
-    description: "Voltage fluctuations causing appliances to malfunction.",
-    emergency: false,
-    status: "in-progress",
-    createdAt: "2025-12-13T22:45:00",
-    photoUrls: [],
-    assignedTeam: "Line Team A",
-    isNew: false,
-  },
-];
+const getInitialForm = (citizen: CitizenUser | null) => ({
+  name: citizen?.name || "",
+  phone: citizen?.phone || "",
+  consumerId: citizen?.consumerId || "",
+  location: citizen?.consumerId || "",
+  zone: "ward-1",
+  issueType: "",
+  description: "",
+  emergency: false,
+});
 
-const initialStats: DashboardStats = {
-  total: 5,
-  pending: 2,
-  resolved: 3,
-  inProgress: 1,
-  assigned: 0,
-};
-
-const statusBadge = (status: string) => {
+const statusBadge = (status: CitizenComplaint["status"]) => {
   const map: Record<string, string> = {
     received: "bg-blue-50 text-blue-700",
     "in-progress": "bg-amber-50 text-amber-700",
     resolved: "bg-green-50 text-green-700",
     escalated: "bg-red-50 text-red-700",
+    ASSIGNED: "bg-amber-50 text-amber-700",
+    IN_PROGRESS: "bg-blue-50 text-blue-700",
+    COMPLETED: "bg-green-50 text-green-700",
   };
-  return `px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${map[status] || "bg-slate-100 text-slate-600"}`;
+
+  return `px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${
+    map[status] || "bg-slate-100 text-slate-600"
+  }`;
 };
 
 const emergencyBadge = (emergency: boolean) =>
   emergency ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600";
 
 export default function UserDashboard() {
-  const [complaints, setComplaints] = useState<UserComplaint[]>(mockComplaints);
-  const [stats] = useState<DashboardStats>(initialStats);
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    consumerId: "",
-    issueType: "",
-    description: "",
-    emergency: false,
-  });
+  const navigate = useNavigate();
+  const { citizen, isLoading: authLoading } = useAuth();
+  const [complaints, setComplaints] = useState<CitizenComplaint[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+  const [form, setForm] = useState(getInitialForm(citizen));
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const notify = useCallback(
+    (message: string, type: "success" | "error" = "success") => {
+      setNotification({ message, type });
+      setTimeout(() => setNotification(null), 4000);
+    },
+    []
+  );
 
-    const newComplaint: UserComplaint = {
-      id: "COMP-" + String(Math.floor(Math.random() * 1000)).padStart(3, "0"),
-      citizenName: form.name || "Anonymous",
-      phone: form.phone,
-      location: form.consumerId,
-      zone: "ward-" + Math.floor(Math.random() * 5 + 1),
-      issueType: form.issueType,
-      description: form.description,
-      emergency: form.emergency,
-      status: "received",
-      createdAt: new Date().toISOString(),
-      photoUrls: [],
-      assignedTeam: null,
-      isNew: true,
-    };
+  const loadComplaints = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getMyComplaints();
+      setComplaints(data);
+    } catch {
+      notify("Failed to load complaints", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [notify]);
 
-    setComplaints((prev) => [newComplaint, ...prev]);
-    setForm({
-      name: "",
-      phone: "",
-      consumerId: "",
-      issueType: "",
-      description: "",
-      emergency: false,
-    });
-    alert(`New complaint ${newComplaint.id} submitted!`);
+  useEffect(() => {
+    if (!authLoading && !citizen) {
+      navigate("/login");
+      return;
+    }
+    if (citizen) {
+      setForm(getInitialForm(citizen));
+      loadComplaints();
+    }
+  }, [authLoading, citizen, loadComplaints, navigate]);
+
+  const stats: DashboardStats = {
+    total: complaints.length,
+    pending: complaints.filter((c) => c.status === "received").length,
+    resolved: complaints.filter((c) =>
+      ["resolved", "COMPLETED"].includes(c.status)
+    ).length,
+    inProgress: complaints.filter((c) =>
+      ["in-progress", "IN_PROGRESS"].includes(c.status)
+    ).length,
+    assigned: complaints.filter((c) => c.status === "ASSIGNED").length,
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!citizen) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = await createComplaint({
+        name: form.name || citizen.name,
+        phone: form.phone || citizen.phone,
+        consumerId: form.consumerId || citizen.consumerId,
+        location: form.location || citizen.consumerId,
+        zone: form.zone,
+        issueType: form.issueType,
+        description: form.description,
+        emergency: form.emergency,
+      });
+
+      notify(result.message || "Complaint submitted successfully");
+      setForm(getInitialForm(citizen));
+      setForm((prev) => ({ ...prev, issueType: "", description: "", emergency: false }));
+      loadComplaints();
+    } catch (error) {
+      const message =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: { data?: { message?: string } } }).response
+          ?.data?.message === "string"
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : error instanceof Error
+          ? error.message
+          : "Failed to submit complaint";
+
+      notify(message || "Failed to submit complaint", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-bg">
+        <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-bg">
       <Navbar />
       <div className="max-w-[1400px] mx-auto p-6 w-full space-y-8">
+        <div className="flex items-center justify-between gap-4 max-md:flex-col max-md:items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-navy">
+              Welcome back, {citizen?.name || "Citizen"}
+            </h1>
+            <p className="text-sm text-text-muted mt-1">
+              Submit a complaint and track each update from one place.
+            </p>
+          </div>
+          <div className="bg-white border border-border rounded-2xl px-4 py-3 text-sm text-text-secondary">
+            Consumer ID: <span className="font-semibold text-navy">{citizen?.consumerId}</span>
+          </div>
+        </div>
+
         <div className="grid grid-cols-4 gap-5 max-md:grid-cols-2 max-sm:grid-cols-1">
           {[
             { label: "Total Complaints", value: stats.total, icon: "fas fa-clipboard-list", color: "bg-primary/10 text-primary" },
             { label: "Pending", value: stats.pending, icon: "fas fa-clock", color: "bg-amber-50 text-warning" },
+            { label: "In Progress", value: stats.inProgress, icon: "fas fa-tools", color: "bg-blue-50 text-primary" },
             { label: "Resolved", value: stats.resolved, icon: "fas fa-check-circle", color: "bg-green-50 text-success" },
-            { label: "Avg Rating", value: "4.2", icon: "fas fa-star", color: "bg-blue-50 text-primary" },
           ].map((s) => (
             <div key={s.label} className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
@@ -124,25 +177,40 @@ export default function UserDashboard() {
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
-          <h2 className="text-xl font-bold text-navy mb-6 flex items-center gap-2">
-            <i className="fas fa-history text-primary"></i>
-            My Recent Complaints
-          </h2>
-          {complaints.length === 0 ? (
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-navy flex items-center gap-2">
+              <i className="fas fa-history text-primary"></i>
+              My Recent Complaints
+            </h2>
+            <button
+              onClick={loadComplaints}
+              className="border border-border text-text-secondary px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer
+                transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
+            >
+              <i className="fas fa-sync-alt mr-1.5"></i> Refresh
+            </button>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+              <p className="text-text-muted text-sm">Loading complaints...</p>
+            </div>
+          ) : complaints.length === 0 ? (
             <div className="text-center py-12 text-text-muted">
               <i className="fas fa-inbox text-3xl mb-3 block opacity-30"></i>
-              No complaints yet.
+              No complaints yet. Submit your first complaint below.
             </div>
           ) : (
             <div className="space-y-3">
               {complaints.map((c) => (
                 <div
-                  key={c.id}
+                  key={c._id}
                   className="bg-bg border border-border rounded-2xl p-5 transition-all hover:border-primary/30 hover:shadow-md"
                 >
                   <div className="flex gap-4 max-md:flex-col">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                      {c.id.slice(-3)}
+                      {c.complaintId.slice(-3)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
@@ -150,10 +218,14 @@ export default function UserDashboard() {
                         <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${emergencyBadge(c.emergency)}`}>
                           {c.emergency ? "Emergency" : "Normal"}
                         </span>
-                        <span className={statusBadge(c.status)}>{c.status}</span>
+                        <span className={statusBadge(c.status)}>{c.status.replace("_", " ")}</span>
                       </div>
-                      <div className="flex items-center gap-4 text-xs text-text-muted mb-2">
-                        <span><i className="fas fa-map-marker-alt mr-1"></i>{c.location}</span>
+                      <div className="flex items-center gap-4 text-xs text-text-muted mb-2 flex-wrap">
+                        <span>
+                          <i className="fas fa-map-marker-alt mr-1"></i>
+                          {c.location || c.address}
+                        </span>
+                        <span>Zone: {c.zone || "N/A"}</span>
                         <span>{new Date(c.createdAt).toLocaleDateString()}</span>
                       </div>
                       <p className="text-sm text-text-secondary leading-relaxed line-clamp-1">
@@ -181,6 +253,7 @@ export default function UserDashboard() {
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                 placeholder="Enter your full name"
                 className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                required
               />
             </div>
 
@@ -206,6 +279,34 @@ export default function UserDashboard() {
                 required
                 className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Location *</label>
+              <input
+                type="text"
+                value={form.location}
+                onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
+                placeholder="Enter your area / location"
+                required
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Zone *</label>
+              <select
+                value={form.zone}
+                onChange={(e) => setForm((p) => ({ ...p, zone: e.target.value }))}
+                required
+                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+              >
+                <option value="ward-1">Ward 1</option>
+                <option value="ward-2">Ward 2</option>
+                <option value="ward-3">Ward 3</option>
+                <option value="ward-4">Ward 4</option>
+                <option value="ward-5">Ward 5</option>
+              </select>
             </div>
 
             <div>
@@ -257,18 +358,51 @@ export default function UserDashboard() {
             <div className="col-span-2">
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="w-full bg-gradient-to-r from-primary to-accent-cyan text-white
                   py-4 rounded-xl font-semibold text-sm cursor-pointer
                   shadow-md shadow-blue-500/20 transition-all
-                  hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30"
+                  hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30
+                  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
-                <i className="fas fa-paper-plane mr-2"></i>
-                Submit Complaint
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                    Submitting...
+                  </span>
+                ) : (
+                  <>
+                    <i className="fas fa-paper-plane mr-2"></i>
+                    Submit Complaint
+                  </>
+                )}
               </button>
             </div>
           </form>
         </div>
       </div>
+
+      {notification && (
+        <div
+          className={`fixed top-24 right-6 px-5 py-3.5 rounded-xl text-white font-semibold text-sm
+            shadow-lg z-[2000] max-w-[350px] animate-slide-in
+            ${notification.type === "success" ? "bg-success" : "bg-error"}`}
+        >
+          <i className={`fas ${notification.type === "success" ? "fa-check-circle" : "fa-times-circle"} mr-2`}></i>
+          {notification.message}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slide-in {
+          from { transform: translateX(400px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.4s ease forwards;
+        }
+      `}</style>
+
       <Footer />
     </div>
   );

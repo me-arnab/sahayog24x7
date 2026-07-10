@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
+import { registerCitizen } from "../api/auth";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -14,17 +15,32 @@ export default function Register() {
     confirmPassword: "",
   });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
+    if (!form.name.trim()) {
+      setError("Full name is required!");
+      return;
+    }
     if (!form.consumerId) {
       setError("Consumer ID is required!");
+      return;
+    }
+    if (!form.email.trim()) {
+      setError("Email address is required!");
+      return;
+    }
+    if (!form.phone.trim()) {
+      setError("Mobile number is required!");
       return;
     }
     if (form.password !== form.confirmPassword) {
@@ -36,8 +52,43 @@ export default function Register() {
       return;
     }
 
-    alert("Registration successful!\nConsumer ID: " + form.consumerId);
-    navigate("/user/dashboard");
+    setIsSubmitting(true);
+    try {
+      const response = await registerCitizen({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        consumerId: form.consumerId.trim(),
+        password: form.password,
+      });
+
+      setSuccess(response.message || "Registration successful!");
+      setForm({
+        name: "",
+        consumerId: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+      });
+      navigate("/login", { state: { mode: "citizen" } });
+    } catch (error) {
+      const message =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: { data?: { message?: string } } }).response
+          ?.data?.message === "string"
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : error instanceof Error
+          ? error.message
+          : "Registration failed";
+
+      setError(message || "Registration failed");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -59,6 +110,13 @@ export default function Register() {
             <div className="bg-red-50 text-error text-sm p-3 rounded-xl mb-5 border border-red-200 flex items-center gap-2">
               <i className="fas fa-exclamation-circle"></i>
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-50 text-success text-sm p-3 rounded-xl mb-5 border border-green-200 flex items-center gap-2">
+              <i className="fas fa-check-circle"></i>
+              {success}
             </div>
           )}
 
@@ -144,13 +202,24 @@ export default function Register() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="w-full py-3 bg-gradient-to-r from-primary to-accent-cyan text-white
                 rounded-xl font-semibold text-sm cursor-pointer mt-2
                 shadow-md shadow-blue-500/20 transition-all
-                hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30"
+                hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30
+                disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
-              <i className="fas fa-check-circle mr-2"></i>
-              Register
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Registering...
+                </span>
+              ) : (
+                <>
+                  <i className="fas fa-check-circle mr-2"></i>
+                  Register
+                </>
+              )}
             </button>
           </form>
 

@@ -11,11 +11,12 @@ import type { Complaint } from "../types";
 import logo from "../assets/logo.png";
 export default function WorkerDashboard() {
   const navigate = useNavigate();
-  const { worker, isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const { worker, isLoading: authLoading, logout } = useAuth();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [reportForm, setReportForm] = useState({
     workPerformed: "",
     conditionAfter: "",
@@ -35,6 +36,19 @@ export default function WorkerDashboard() {
     []
   );
 
+  const getApiErrorMessage = (error: unknown, fallback: string) => {
+    if (typeof error === "object" && error !== null && "response" in error) {
+      const response = (error as { response?: { data?: { message?: string } } }).response;
+      return response?.data?.message || fallback;
+    }
+
+    if (error instanceof Error && error.message) {
+      return error.message;
+    }
+
+    return fallback;
+  };
+
   const loadComplaints = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -48,14 +62,14 @@ export default function WorkerDashboard() {
   }, [notify]);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
+    if (!authLoading && !worker) {
       navigate("/login");
       return;
     }
-    if (isAuthenticated) {
+    if (worker) {
       loadComplaints();
     }
-  }, [authLoading, isAuthenticated, navigate, loadComplaints]);
+  }, [authLoading, worker, navigate, loadComplaints]);
 
   const stats = {
     total: complaints.length,
@@ -91,23 +105,30 @@ export default function WorkerDashboard() {
     e.preventDefault();
     if (!selectedComplaint) return;
 
+    setShowConfirmModal(true);
+  };
+
+  const submitConfirmedReport = async () => {
+    if (!selectedComplaint) return;
+
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append("complaintId", selectedComplaint.complaintId);
+      formData.append("complaintId", selectedComplaint._id);
       formData.append("workPerformed", reportForm.workPerformed);
       formData.append("conditionAfter", reportForm.conditionAfter);
       if (reportForm.photo) {
         formData.append("afterPhoto", reportForm.photo);
       }
 
-      await submitWorkReport(formData);
-      notify("Work report submitted successfully!");
+      const result = await submitWorkReport(formData);
+      notify(result.message || "Work report submitted successfully");
       setShowReportModal(false);
+      setShowConfirmModal(false);
       setReportForm({ workPerformed: "", conditionAfter: "", photo: null });
       loadComplaints();
-    } catch {
-      notify("Failed to submit report", "error");
+    } catch (error) {
+      notify(getApiErrorMessage(error, "Failed to submit report"), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -356,7 +377,10 @@ export default function WorkerDashboard() {
       {showReportModal && (
         <div
           className="fixed inset-0 bg-navy/60 backdrop-blur-sm z-50 flex items-center justify-center p-5"
-          onClick={() => setShowReportModal(false)}
+          onClick={() => {
+            setShowConfirmModal(false);
+            setShowReportModal(false);
+          }}
         >
           <div
             className="bg-card rounded-2xl max-w-[500px] w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-border"
@@ -367,7 +391,10 @@ export default function WorkerDashboard() {
                 <i className="fas fa-file-alt text-primary"></i> Submit Work Report
               </h3>
               <button
-                onClick={() => setShowReportModal(false)}
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  setShowReportModal(false);
+                }}
                 className="text-2xl text-text-muted hover:text-navy transition-colors bg-transparent border-none cursor-pointer leading-none"
               >
                 ×
@@ -433,6 +460,67 @@ export default function WorkerDashboard() {
                 )}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showConfirmModal && (
+        <div
+          className="fixed inset-0 bg-navy/70 backdrop-blur-sm z-[60] flex items-center justify-center p-5"
+          onClick={() => !isSubmitting && setShowConfirmModal(false)}
+        >
+          <div
+            className="bg-card rounded-2xl max-w-[460px] w-full shadow-2xl border border-border overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-border">
+              <h3 className="text-lg font-bold text-navy flex items-center gap-2">
+                <i className="fas fa-circle-check text-success"></i> Confirm Submission
+              </h3>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-text-secondary leading-relaxed">
+                Please confirm that the work report is complete. Once submitted, the complaint will be marked as completed and the uploaded image will be saved.
+              </p>
+
+              <div className="bg-bg rounded-xl border border-border p-4 text-sm space-y-2">
+                <div>
+                  <span className="text-text-muted">Complaint: </span>
+                  <span className="font-semibold text-navy">{selectedComplaint?.complaintId}</span>
+                </div>
+                <div>
+                  <span className="text-text-muted">Image: </span>
+                  <span className="font-semibold text-navy">{reportForm.photo?.name || "No file selected"}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-border flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                disabled={isSubmitting}
+                className="flex-1 bg-white border border-border text-text-secondary py-3 rounded-xl font-semibold text-sm cursor-pointer hover:border-primary hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={submitConfirmedReport}
+                disabled={isSubmitting}
+                className="flex-1 bg-success text-white py-3 rounded-xl font-semibold text-sm cursor-pointer shadow-md shadow-green-500/20 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                    Submitting...
+                  </span>
+                ) : (
+                  <span><i className="fas fa-paper-plane mr-1.5"></i> Confirm & Submit</span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

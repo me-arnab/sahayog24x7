@@ -11,6 +11,26 @@ export interface AuthResponse {
   worker: Worker;
 }
 
+export interface CitizenUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  consumerId: string;
+  role: "user";
+}
+
+export interface CitizenAuthResponse {
+  token: string;
+  user: CitizenUser;
+  message: string;
+}
+
+export interface CitizenLoginCredentials {
+  identifier: string;
+  password: string;
+}
+
 export interface LoginCredentials {
   employeeId: string;
   password: string;
@@ -40,6 +60,43 @@ export interface Complaint {
   timeTakenInSeconds: number | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CitizenComplaint {
+  _id: string;
+  complaintId: string;
+  userId: string | null;
+  consumerName: string;
+  phone: string;
+  location: string;
+  zone: string;
+  issueType: string;
+  address: string;
+  description: string;
+  emergency: boolean;
+  status: "received" | "ASSIGNED" | "IN_PROGRESS" | "COMPLETED" | "in-progress" | "resolved" | "escalated";
+  priority: string;
+  photos: string[];
+  assignedWorker: string | null;
+  assignedTeam: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  timeTakenInSeconds: number | null;
+  resolutionNotes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateComplaintPayload {
+  name: string;
+  phone: string;
+  consumerId: string;
+  location?: string;
+  zone?: string;
+  issueType: string;
+  description: string;
+  emergency: boolean;
+  priority?: string;
 }
 
 // ─── Work Report ───

@@ -10,6 +10,15 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  const isFormData =
+    typeof FormData !== "undefined" && config.data instanceof FormData;
+
+  if (isFormData && config.headers) {
+    delete (config.headers as Record<string, string>)["Content-Type"];
+    delete (config.headers as Record<string, string>)["content-type"];
+  }
+
   return config;
 });
 

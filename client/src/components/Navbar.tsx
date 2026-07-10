@@ -4,7 +4,7 @@ import logo from "../assets/logo.png";
 
 export function Navbar() {
   const location = useLocation();
-  const { worker, isAuthenticated, logout } = useAuth();
+  const { displayName, isAuthenticated, logout } = useAuth();
   const isHome = location.pathname === "/";
 
   return (
@@ -60,7 +60,7 @@ export function Navbar() {
               <li>
                 <span className="bg-gradient-to-r from-primary to-accent-cyan text-white px-5 py-2 rounded-full text-sm font-semibold shadow-md shadow-blue-500/20 inline-flex items-center gap-2">
                   <i className="fas fa-user-circle text-sm"></i>
-                  {worker?.name}
+                  {displayName}
                 </span>
               </li>
               <li>

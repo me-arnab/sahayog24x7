@@ -6,57 +6,112 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import type { Worker, LoginCredentials } from "../types";
-import { loginWorker } from "../api/auth";
+import type {
+  CitizenAuthResponse,
+  CitizenLoginCredentials,
+  CitizenUser,
+  LoginCredentials,
+  Worker,
+} from "../types";
+import { loginCitizen, loginWorker } from "../api/auth";
 
 interface AuthContextType {
   worker: Worker | null;
+  citizen: CitizenUser | null;
+  displayName: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
+  loginWorker: (credentials: LoginCredentials) => Promise<void>;
+  loginCitizen: (credentials: CitizenLoginCredentials) => Promise<void>;
+  syncCitizenSession: (response: CitizenAuthResponse) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const TOKEN_KEY = "token";
+const WORKER_KEY = "worker";
+const CITIZEN_KEY = "citizen";
+const SESSION_KEY = "sessionType";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [worker, setWorker] = useState<Worker | null>(null);
+  const [citizen, setCitizen] = useState<CitizenUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("worker");
-    const token = localStorage.getItem("token");
-    if (stored && token) {
-      try {
-        setWorker(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem("worker");
-        localStorage.removeItem("token");
+    const sessionType = localStorage.getItem(SESSION_KEY);
+    const storedWorker = localStorage.getItem(WORKER_KEY);
+    const storedCitizen = localStorage.getItem(CITIZEN_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
+
+    try {
+      if (sessionType === "worker" && storedWorker && token) {
+        setWorker(JSON.parse(storedWorker));
+      } else if (sessionType === "user" && storedCitizen && token) {
+        setCitizen(JSON.parse(storedCitizen));
+      } else if (storedWorker && token) {
+        setWorker(JSON.parse(storedWorker));
+      } else if (storedCitizen && token) {
+        setCitizen(JSON.parse(storedCitizen));
       }
+    } catch {
+      localStorage.removeItem(WORKER_KEY);
+      localStorage.removeItem(CITIZEN_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(SESSION_KEY);
     }
+
     setIsLoading(false);
   }, []);
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
+  const loginAsWorker = useCallback(async (credentials: LoginCredentials) => {
     const response = await loginWorker(credentials);
-    localStorage.setItem("token", response.token);
-    localStorage.setItem("worker", JSON.stringify(response.worker));
+    localStorage.setItem(TOKEN_KEY, response.token);
+    localStorage.setItem(WORKER_KEY, JSON.stringify(response.worker));
+    localStorage.setItem(SESSION_KEY, "worker");
+    localStorage.removeItem(CITIZEN_KEY);
     setWorker(response.worker);
+    setCitizen(null);
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("worker");
+  const syncCitizenSession = useCallback((response: CitizenAuthResponse) => {
+    localStorage.setItem(TOKEN_KEY, response.token);
+    localStorage.setItem(CITIZEN_KEY, JSON.stringify(response.user));
+    localStorage.setItem(SESSION_KEY, "user");
+    localStorage.removeItem(WORKER_KEY);
+    setCitizen(response.user);
     setWorker(null);
+  }, []);
+
+  const loginAsCitizen = useCallback(
+    async (credentials: CitizenLoginCredentials) => {
+      const response = await loginCitizen(credentials);
+      syncCitizenSession(response);
+    },
+    [syncCitizenSession]
+  );
+
+  const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(WORKER_KEY);
+    localStorage.removeItem(CITIZEN_KEY);
+    localStorage.removeItem(SESSION_KEY);
+    setWorker(null);
+    setCitizen(null);
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
         worker,
-        isAuthenticated: !!worker,
+        citizen,
+        displayName: worker?.name || citizen?.name || null,
+        isAuthenticated: !!worker || !!citizen,
         isLoading,
-        login,
+        loginWorker: loginAsWorker,
+        loginCitizen: loginAsCitizen,
+        syncCitizenSession,
         logout,
       }}
     >

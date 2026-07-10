@@ -1,6 +1,16 @@
 const Complaint = require("../models/Complaint");
 const Worker = require("../models/Worker");
 
+const generateComplaintId = async () => {
+  const latest = await Complaint.findOne({}, { complaintId: 1 })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const match = latest?.complaintId?.match(/(\d+)$/);
+  const nextNumber = match ? Number(match[1]) + 1 : 1;
+  return `CMP-${String(nextNumber).padStart(4, "0")}`;
+};
+
 exports.seedComplaints = async (req, res) => {
   try {
     const { employeeId, complaints } = req.body;
@@ -40,6 +50,81 @@ exports.seedComplaints = async (req, res) => {
   }
 };
 
+exports.createComplaint = async (req, res) => {
+  try {
+    const citizen = req.user;
+    if (!citizen) {
+      return res.status(403).json({ message: "Citizen authentication required" });
+    }
+
+    const {
+      name,
+      phone,
+      consumerId,
+      location,
+      zone,
+      issueType,
+      description,
+      emergency,
+    } = req.body;
+
+    if (!issueType || !description) {
+      return res.status(400).json({
+        message: "issueType and description are required",
+      });
+    }
+
+    const complaintId = await generateComplaintId();
+    const complaint = await Complaint.create({
+      complaintId,
+      userId: citizen._id,
+      consumerName: String(name || citizen.name || "").trim(),
+      phone: String(phone || citizen.phone || "").trim(),
+      location: String(location || consumerId || citizen.consumerId || "").trim(),
+      zone: String(zone || "ward-1").trim(),
+      issueType: String(issueType).trim(),
+      address: String(location || consumerId || citizen.consumerId || "").trim(),
+      description: String(description).trim(),
+      emergency:
+        emergency === true ||
+        emergency === "true" ||
+        emergency === 1 ||
+        emergency === "1",
+      status: "received",
+      priority: String(req.body.priority || "low").trim(),
+      photos: Array.isArray(req.body.photos) ? req.body.photos : [],
+      assignedWorker: null,
+      assignedTeam: null,
+    });
+
+    res.status(201).json({
+      message: "Complaint submitted successfully",
+      complaint,
+    });
+  } catch (error) {
+    console.error("Create complaint error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getMyComplaints = async (req, res) => {
+  try {
+    const citizen = req.user;
+    if (!citizen) {
+      return res.status(403).json({ message: "Citizen authentication required" });
+    }
+
+    const complaints = await Complaint.find({ userId: citizen._id }).sort({
+      createdAt: -1,
+    });
+
+    res.json(complaints);
+  } catch (error) {
+    console.error("Get citizen complaints error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 exports.getAssignedComplaints = async (req, res) => {
   try {
     const complaints = await Complaint.find({
@@ -61,7 +146,29 @@ exports.getComplaintById = async (req, res) => {
       return res.status(404).json({ message: "Complaint not found" });
     }
 
-    if (complaint.assignedWorker.toString() !== req.worker._id.toString()) {
+    if (
+      req.worker &&
+      complaint.assignedWorker &&
+      complaint.assignedWorker.toString() === req.worker._id.toString()
+    ) {
+      return res.json(complaint);
+    }
+
+    if (
+      req.user &&
+      complaint.userId &&
+      complaint.userId.toString() === req.user._id.toString()
+    ) {
+      return res.json(complaint);
+    }
+
+    if (!req.worker) {
+      return res
+        .status(403)
+        .json({ message: "This complaint does not belong to you" });
+    }
+
+    if (!complaint.assignedWorker || complaint.assignedWorker.toString() !== req.worker._id.toString()) {
       return res
         .status(403)
         .json({ message: "This complaint is not assigned to you" });
@@ -76,6 +183,10 @@ exports.getComplaintById = async (req, res) => {
 
 exports.startWork = async (req, res) => {
   try {
+    if (!req.worker) {
+      return res.status(403).json({ message: "Worker authentication required" });
+    }
+
     const complaint = await Complaint.findById(req.params.id);
 
     if (!complaint) {
@@ -101,6 +212,44 @@ exports.startWork = async (req, res) => {
     res.json(complaint);
   } catch (error) {
     console.error("Start work error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getComplaintCounts = async (req, res) => {
+  try {
+    const citizen = req.user;
+    const filter = citizen ? { userId: citizen._id } : {};
+    const total = await Complaint.countDocuments(filter);
+    const received = await Complaint.countDocuments({ ...filter, status: "received" });
+    const inProgress = await Complaint.countDocuments({
+      ...filter,
+      status: { $in: ["IN_PROGRESS", "in-progress"] },
+    });
+    const resolved = await Complaint.countDocuments({
+      ...filter,
+      status: { $in: ["COMPLETED", "resolved"] },
+    });
+
+    res.json({
+      total,
+      pending: received,
+      inProgress,
+      resolved,
+      assigned: await Complaint.countDocuments({ ...filter, status: "ASSIGNED" }),
+    });
+  } catch (error) {
+    console.error("Complaint stats error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getAdminComplaints = async (req, res) => {
+  try {
+    const complaints = await Complaint.find({}).sort({ createdAt: -1 });
+    res.json(complaints);
+  } catch (error) {
+    console.error("Get admin complaints error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

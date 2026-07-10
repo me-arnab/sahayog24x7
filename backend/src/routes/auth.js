@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { login, seedWorker } = require("../controllers/authController");
+const { login, register, seedWorker } = require("../controllers/authController");
 
+router.post("/register", register);
 router.post("/login", login);
 router.post("/seed", seedWorker);
 
