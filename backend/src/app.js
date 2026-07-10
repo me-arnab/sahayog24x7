@@ -5,6 +5,7 @@ const path = require("path");
 const authRoutes = require("./routes/auth");
 const complaintRoutes = require("./routes/complaints");
 const workReportRoutes = require("./routes/workReport");
+const noticeRoutes = require("./routes/notices");
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/work-report", workReportRoutes);
+app.use("/api/notices", noticeRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
