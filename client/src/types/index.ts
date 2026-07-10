@@ -26,6 +26,18 @@ export interface CitizenAuthResponse {
   message: string;
 }
 
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: "admin";
+}
+
+export interface AdminAuthResponse {
+  token: string;
+  user: AdminUser;
+}
+
 export interface CitizenLoginCredentials {
   identifier: string;
   password: string;

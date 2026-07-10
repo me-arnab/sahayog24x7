@@ -1,14 +1,15 @@
 import apiClient from "./client";
 import type {
   AuthResponse,
+  AdminAuthResponse,
   CitizenAuthResponse,
   LoginCredentials,
 } from "../types";
 
-export async function loginWorker(
-  credentials: LoginCredentials
-): Promise<AuthResponse> {
-  const { data } = await apiClient.post<AuthResponse>(
+export async function loginStaff(
+  credentials: LoginCredentials & { accountType: "worker" | "admin" }
+): Promise<AuthResponse | AdminAuthResponse> {
+  const { data } = await apiClient.post<AuthResponse | AdminAuthResponse>(
     "/auth/login",
     credentials
   );
@@ -28,10 +29,7 @@ export async function loginCitizen(payload: {
   identifier: string;
   password: string;
 }): Promise<CitizenAuthResponse> {
-  const { data } = await apiClient.post<CitizenAuthResponse>("/auth/login", {
-    ...payload,
-    accountType: "user",
-  });
+  const { data } = await apiClient.post<CitizenAuthResponse>("/auth/login-citizen", payload);
   return data;
 }
 

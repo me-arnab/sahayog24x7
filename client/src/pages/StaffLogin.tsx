@@ -5,9 +5,12 @@ import { Footer } from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/logo.png";
 
-export default function Login() {
+type StaffLoginMode = "worker" | "admin";
+
+export default function StaffLogin() {
   const navigate = useNavigate();
-  const { loginCitizen } = useAuth();
+  const { loginStaff } = useAuth();
+  const [mode, setMode] = useState<StaffLoginMode>("worker");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,16 +21,25 @@ export default function Login() {
     setError("");
 
     if (!identifier || !password) {
-      setError("Email/Consumer ID and password are required");
+      setError(
+        mode === "worker"
+          ? "Employee ID and password are required"
+          : "Admin Email and password are required"
+      );
       return;
     }
 
     setIsLoading(true);
     try {
-      await loginCitizen({ identifier: identifier.trim(), password });
-      navigate("/user/dashboard");
+      if (mode === "worker") {
+        await loginStaff({ employeeId: identifier.trim(), password, accountType: "worker" });
+        navigate("/worker/dashboard");
+      } else {
+        await loginStaff({ employeeId: "", identifier: identifier.trim(), password, accountType: "admin" });
+        navigate("/admin/dashboard");
+      }
     } catch {
-      setError("Invalid credentials. Please try again.");
+      setError("Invalid credentials or unauthorized access.");
     } finally {
       setIsLoading(false);
     }
@@ -42,10 +54,45 @@ export default function Login() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/10 to-accent-cyan/10 flex items-center justify-center">
               <img src={logo} className="w-10 h-10" alt="logo" />
             </div>
-            <h2 className="text-2xl font-bold text-navy">Citizen Login</h2>
+            <h2 className="text-2xl font-bold text-navy">
+              {mode === "worker" ? "Worker Login" : "Admin Login"}
+            </h2>
             <p className="text-sm text-text-muted mt-1">
-              Sign in to submit and track your complaints
+              Secure Staff Portal
             </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-bg border border-border mb-5">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("worker");
+                setError("");
+                setIdentifier("");
+              }}
+              className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                mode === "worker"
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-text-muted hover:text-navy"
+              }`}
+            >
+              Worker
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("admin");
+                setError("");
+                setIdentifier("");
+              }}
+              className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                mode === "admin"
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-text-muted hover:text-navy"
+              }`}
+            >
+              Admin
+            </button>
           </div>
 
           {error && (
@@ -58,11 +105,11 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                Email or Consumer ID
+                {mode === "worker" ? "Employee ID" : "Admin Email"}
               </label>
               <input
                 type="text"
-                placeholder="you@example.com or CON123456"
+                placeholder={mode === "worker" ? "e.g. WB001" : "admin@example.com"}
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
@@ -96,7 +143,7 @@ export default function Login() {
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                  Signing in...
+                  Authenticating...
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
@@ -106,19 +153,12 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="text-center mt-6 flex justify-between px-2">
+          <div className="text-center mt-6">
             <Link
               to="/"
               className="text-primary text-sm font-medium no-underline hover:text-primary-light transition-colors"
             >
               <i className="fas fa-arrow-left mr-1.5"></i> Back to Home
-            </Link>
-            
-            <Link
-              to="/register"
-              className="text-primary text-sm font-semibold no-underline hover:text-primary-light transition-colors"
-            >
-              Register
             </Link>
           </div>
         </div>

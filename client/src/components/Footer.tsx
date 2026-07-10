@@ -34,7 +34,7 @@ export function Footer() {
           </ul>
         </div>
 
-        <div className="border-t border-slate-700 pt-8 text-center">
+        <div className="border-t border-slate-700 pt-8 flex flex-col items-center gap-4 text-center">
           <p className="text-slate-400 text-sm leading-relaxed">
             P & AR Department, Government of West Bengal. All rights reserved. | Designed & Maintained by Sahayog Team.<br />
             Version ID: 1.0 | Best viewed on modern browsers in 16:9 aspect ratio.<br />

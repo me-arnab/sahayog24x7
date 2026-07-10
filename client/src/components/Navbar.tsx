@@ -4,7 +4,7 @@ import logo from "../assets/logo.png";
 
 export function Navbar() {
   const location = useLocation();
-  const { displayName, isAuthenticated, logout } = useAuth();
+  const { displayName, isAuthenticated, logout, citizen, admin } = useAuth();
   const isHome = location.pathname === "/";
 
   return (
@@ -58,6 +58,14 @@ export function Navbar() {
           {isAuthenticated ? (
             <>
               <li>
+                <Link
+                  to={citizen ? "/user/dashboard" : admin ? "/admin/dashboard" : "/worker/dashboard"}
+                  className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors"
+                >
+                  Dashboard
+                </Link>
+              </li>
+              <li>
                 <span className="bg-gradient-to-r from-primary to-accent-cyan text-white px-5 py-2 rounded-full text-sm font-semibold shadow-md shadow-blue-500/20 inline-flex items-center gap-2">
                   <i className="fas fa-user-circle text-sm"></i>
                   {displayName}
@@ -75,12 +83,21 @@ export function Navbar() {
             </>
           ) : (
             <>
+              <li className="flex items-center gap-2 mr-2 border-r border-border pr-6">
+                <Link
+                  to="/staff/login"
+                  className="group flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 border border-border text-slate-400 hover:bg-white hover:text-navy hover:border-slate-300 hover:shadow-sm transition-all"
+                  title="Staff Portal"
+                >
+                  <i className="fas fa-shield-alt group-hover:scale-110 transition-transform"></i>
+                </Link>
+              </li>
               <li>
                 <Link
                   to="/login"
                   className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors"
                 >
-                  Login
+                  Citizen Login
                 </Link>
               </li>
               <li>

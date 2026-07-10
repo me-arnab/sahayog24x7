@@ -278,198 +278,111 @@ exports.seedWorker = async (req, res) => {
   }
 };
 
+exports.loginCitizen = async (req, res) => {
+  try {
+    const { identifier, password } = req.body;
+    const loginIdentifier = String(identifier || req.body.email || req.body.consumerId || "").trim();
+
+    if (!loginIdentifier || !password) {
+      return res.status(400).json({ message: "Email/Consumer ID and password are required" });
+    }
+
+    if (!isMongoReady()) {
+      console.warn("MongoDB unavailable; using in-memory citizen store for auth");
+      const user = await fallbackFindUser({
+        email: loginIdentifier.toLowerCase(),
+        consumerId: loginIdentifier,
+      });
+
+      if (!user) return res.status(401).json({ message: "Invalid credentials" });
+      if (user.role !== "user") return res.status(403).json({ message: "Staff accounts must sign in through the staff portal" });
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+
+      const token = jwt.sign({ id: user._id, email: user.email, role: user.role, accountType: "user" }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+      return res.json({ token, user: { id: user._id, name: user.name, email: user.email, phone: user.phone, consumerId: user.consumerId, role: user.role } });
+    }
+
+    const user = await User.findOne({
+      $or: [{ email: loginIdentifier.toLowerCase() }, { consumerId: loginIdentifier }],
+    });
+
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    if (user.role !== "user") return res.status(403).json({ message: "Staff accounts must sign in through the staff portal" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+
+    const token = jwt.sign({ id: user._id, email: user.email, role: user.role, accountType: "user" }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    return res.json({ token, user: { id: user._id, name: user.name, email: user.email, phone: user.phone, consumerId: user.consumerId, role: user.role } });
+  } catch (error) {
+    console.error("Citizen login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 exports.login = async (req, res) => {
   try {
     const { employeeId, identifier, password, accountType } = req.body;
 
-    const loginAsCitizen =
-      accountType === "user" || (!employeeId && !!identifier);
-
-    if (loginAsCitizen) {
-      const loginIdentifier = String(identifier || req.body.email || req.body.consumerId || "").trim();
-
+    // Admin login using identifier (email)
+    if (accountType === "admin" || (!employeeId && !!identifier)) {
+      const loginIdentifier = String(identifier || req.body.email || "").trim();
+      
       if (!loginIdentifier || !password) {
-        return res
-          .status(400)
-          .json({ message: "Email/Consumer ID and password are required" });
+        return res.status(400).json({ message: "Email and password are required" });
       }
 
       if (!isMongoReady()) {
-        console.warn("MongoDB unavailable; using in-memory citizen store for auth");
-        const user = await fallbackFindUser({
-          email: loginIdentifier.toLowerCase(),
-          consumerId: loginIdentifier,
-        });
-
-        if (!user) {
-          return res.status(401).json({ message: "Invalid credentials" });
-        }
+        const user = await fallbackFindUser({ email: loginIdentifier.toLowerCase(), consumerId: loginIdentifier });
+        if (!user) return res.status(401).json({ message: "Invalid credentials" });
+        if (user.role !== "admin") return res.status(403).json({ message: "Citizens cannot log in through the staff portal" });
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-          return res.status(401).json({ message: "Invalid credentials" });
-        }
+        if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
-        const token = jwt.sign(
-          { id: user._id, email: user.email, role: user.role, accountType: "user" },
-          JWT_SECRET,
-          { expiresIn: JWT_EXPIRES_IN }
-        );
-
-        return res.json({
-          token,
-          user: {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            consumerId: user.consumerId,
-            role: user.role,
-          },
-        });
+        const token = jwt.sign({ id: user._id, email: user.email, role: user.role, accountType: "user" }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+        return res.json({ token, user: { id: user._id, name: user.name, email: user.email, phone: user.phone, consumerId: user.consumerId, role: user.role } });
       }
 
-      const user = await User.findOne({
-        $or: [
-          { email: loginIdentifier.toLowerCase() },
-          { consumerId: loginIdentifier },
-        ],
-      });
-
-      if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
+      const user = await User.findOne({ email: loginIdentifier.toLowerCase() });
+      if (!user) return res.status(401).json({ message: "Invalid credentials" });
+      if (user.role !== "admin") return res.status(403).json({ message: "Citizens cannot log in through the staff portal" });
 
       const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
+      if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
-      const token = jwt.sign(
-        { id: user._id, email: user.email, role: user.role, accountType: "user" },
-        JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
-      );
-
-      return res.json({
-        token,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          consumerId: user.consumerId,
-          role: user.role,
-        },
-      });
+      const token = jwt.sign({ id: user._id, email: user.email, role: user.role, accountType: "user" }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+      return res.json({ token, user: { id: user._id, name: user.name, email: user.email, phone: user.phone, consumerId: user.consumerId, role: user.role } });
     }
 
+    // Worker login using employeeId
     if (!employeeId || !password) {
-      return res
-        .status(400)
-        .json({ message: "Employee ID and password are required" });
+      return res.status(400).json({ message: "Employee ID and password are required" });
     }
 
     if (!isMongoReady()) {
-      console.warn("MongoDB unavailable; using in-memory worker store for auth");
       const worker = await fallbackFindWorker(employeeId);
-      if (!worker) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
+      if (!worker) return res.status(401).json({ message: "Invalid credentials" });
+      
       const isMatch = await bcrypt.compare(password, worker.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
+      if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
-      const token = jwt.sign(
-        {
-          id: worker._id,
-          employeeId: worker.employeeId,
-          role: worker.role,
-          accountType: "worker",
-        },
-        JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
-      );
-
-      return res.json({
-        token,
-        worker: {
-          id: worker._id,
-          employeeId: worker.employeeId,
-          name: worker.name,
-          role: worker.role,
-        },
-      });
+      const token = jwt.sign({ id: worker._id, employeeId: worker.employeeId, role: worker.role, accountType: "worker" }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+      return res.json({ token, worker: { id: worker._id, employeeId: worker.employeeId, name: worker.name, role: worker.role } });
     }
 
     const worker = await Worker.findOne({ employeeId });
-    if (!worker) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!worker) return res.status(401).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, worker.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign(
-      {
-        id: worker._id,
-        employeeId: worker.employeeId,
-        role: worker.role,
-        accountType: "worker",
-      },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
-
-    res.json({
-      token,
-      worker: {
-        id: worker._id,
-        employeeId: worker.employeeId,
-        name: worker.name,
-        role: worker.role,
-      },
-    });
+    const token = jwt.sign({ id: worker._id, employeeId: worker.employeeId, role: worker.role, accountType: "worker" }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    return res.json({ token, worker: { id: worker._id, employeeId: worker.employeeId, name: worker.name, role: worker.role } });
   } catch (error) {
-    if (!isMongoReady() || /ECONNREFUSED|ENOTFOUND|querySrv|timed out/i.test(error.message)) {
-      console.warn("MongoDB unavailable; using in-memory worker store for auth");
-      const worker = await fallbackFindWorker(req.body.employeeId);
-      if (!worker) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
-      const isMatch = await bcrypt.compare(req.body.password, worker.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
-      const token = jwt.sign(
-        {
-          id: worker._id,
-          employeeId: worker.employeeId,
-          role: worker.role,
-          accountType: "worker",
-        },
-        JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
-      );
-
-      return res.json({
-        token,
-        worker: {
-          id: worker._id,
-          employeeId: worker.employeeId,
-          name: worker.name,
-          role: worker.role,
-        },
-      });
-    }
-
-    console.error("Login error:", error);
+    console.error("Staff login error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
