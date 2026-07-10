@@ -2,11 +2,7 @@
 
 export type NoticeType = "Maintenance" | "Payment" | "Outage" | "General";
 
-export type NoticeAudience =
-  | "All Consumers"
-  | "Zone"
-  | "Ward"
-  | "Consumer Group";
+export type NoticeAudience = "Citizen" | "Worker";
 
 export type NoticeStatus = "Active" | "Scheduled" | "Inactive";
 

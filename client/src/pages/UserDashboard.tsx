@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
-import { createComplaint, getMyComplaints } from "../api/complaints";
+import { getConsumerNotices } from "../api/notices";
+import type { Notice } from "../types/notice";
+import { StatusBadge, NoticeTypeBadge } from "../components/StatusBadge";
 import type { CitizenComplaint, CitizenUser, DashboardStats } from "../types";
 
 const getInitialForm = (citizen: CitizenUser | null) => ({
@@ -40,6 +42,7 @@ export default function UserDashboard() {
   const navigate = useNavigate();
   const { citizen, isLoading: authLoading } = useAuth();
   const [complaints, setComplaints] = useState<CitizenComplaint[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState<{
@@ -56,13 +59,17 @@ export default function UserDashboard() {
     []
   );
 
-  const loadComplaints = useCallback(async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await getMyComplaints();
-      setComplaints(data);
+      const [compData, noticeData] = await Promise.all([
+        getMyComplaints(),
+        getConsumerNotices(),
+      ]);
+      setComplaints(compData);
+      setNotices(noticeData.filter((n) => n.audience === "Citizen"));
     } catch {
-      notify("Failed to load complaints", "error");
+      notify("Failed to load data", "error");
     } finally {
       setIsLoading(false);
     }
@@ -75,9 +82,9 @@ export default function UserDashboard() {
     }
     if (citizen) {
       setForm(getInitialForm(citizen));
-      loadComplaints();
+      loadData();
     }
-  }, [authLoading, citizen, loadComplaints, navigate]);
+  }, [authLoading, citizen, loadData, navigate]);
 
   const stats: DashboardStats = {
     total: complaints.length,
@@ -111,7 +118,7 @@ export default function UserDashboard() {
       notify(result.message || "Complaint submitted successfully");
       setForm(getInitialForm(citizen));
       setForm((prev) => ({ ...prev, issueType: "", description: "", emergency: false }));
-      loadComplaints();
+      loadData();
     } catch (error) {
       const message =
         typeof error === "object" &&
@@ -183,7 +190,7 @@ export default function UserDashboard() {
               My Recent Complaints
             </h2>
             <button
-              onClick={loadComplaints}
+              onClick={loadData}
               className="border border-border text-text-secondary px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer
                 transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
             >
@@ -230,6 +237,61 @@ export default function UserDashboard() {
                       </div>
                       <p className="text-sm text-text-secondary leading-relaxed line-clamp-1">
                         {c.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-navy flex items-center gap-2">
+              <i className="fas fa-bullhorn text-primary"></i>
+              Recent Notices
+            </h2>
+            <button
+              onClick={() => navigate("/notices")}
+              className="border border-border text-text-secondary px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer
+                transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
+            >
+              View All <i className="fas fa-arrow-right ml-1"></i>
+            </button>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+            </div>
+          ) : notices.length === 0 ? (
+            <div className="text-center py-8 text-text-muted">
+              <i className="fas fa-check-circle text-3xl mb-3 block opacity-30 text-success"></i>
+              No new notices for you.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+              {notices.slice(0, 4).map((notice) => (
+                <div
+                  key={notice._id}
+                  onClick={() => navigate("/notices")}
+                  className="bg-bg border border-border rounded-2xl p-5 transition-all hover:border-primary/30 hover:shadow-md cursor-pointer"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <i className="fas fa-bell"></i>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-navy text-sm">{notice.title}</h3>
+                        <NoticeTypeBadge type={notice.type} />
+                      </div>
+                      <p className="text-xs text-text-secondary line-clamp-2 mb-2">
+                        {notice.message}
+                      </p>
+                      <p className="text-[10px] text-text-muted font-medium uppercase tracking-wider">
+                        Posted: {new Date(notice.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

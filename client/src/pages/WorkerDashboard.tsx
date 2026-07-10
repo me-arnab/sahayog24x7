@@ -7,12 +7,16 @@ import {
   startWork,
 } from "../api/complaints";
 import { submitWorkReport } from "../api/workReport";
+import { getConsumerNotices } from "../api/notices";
+import type { Notice } from "../types/notice";
+import { StatusBadge, NoticeTypeBadge } from "../components/StatusBadge";
 import type { Complaint } from "../types";
 import logo from "../assets/logo.png";
 export default function WorkerDashboard() {
   const navigate = useNavigate();
   const { worker, isLoading: authLoading, logout } = useAuth();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -49,13 +53,17 @@ export default function WorkerDashboard() {
     return fallback;
   };
 
-  const loadComplaints = useCallback(async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await getAssignedComplaints();
-      setComplaints(data);
+      const [compData, noticeData] = await Promise.all([
+        getAssignedComplaints(),
+        getConsumerNotices(),
+      ]);
+      setComplaints(compData);
+      setNotices(noticeData.filter((n) => n.audience === "Worker"));
     } catch {
-      notify("Failed to load complaints", "error");
+      notify("Failed to load data", "error");
     } finally {
       setIsLoading(false);
     }
@@ -67,9 +75,9 @@ export default function WorkerDashboard() {
       return;
     }
     if (worker) {
-      loadComplaints();
+      loadData();
     }
-  }, [authLoading, worker, navigate, loadComplaints]);
+  }, [authLoading, worker, navigate, loadData]);
 
   const stats = {
     total: complaints.length,
@@ -126,7 +134,7 @@ export default function WorkerDashboard() {
       setShowReportModal(false);
       setShowConfirmModal(false);
       setReportForm({ workPerformed: "", conditionAfter: "", photo: null });
-      loadComplaints();
+      loadData();
     } catch (error) {
       notify(getApiErrorMessage(error, "Failed to submit report"), "error");
     } finally {
@@ -201,7 +209,7 @@ export default function WorkerDashboard() {
               My Assigned Complaints
             </h2>
             <button
-              onClick={loadComplaints}
+              onClick={loadData}
               className="border border-border text-text-secondary px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer
                 transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
             >
@@ -262,6 +270,53 @@ export default function WorkerDashboard() {
                     >
                       {c.emergency ? "Emergency" : "Normal"}
                     </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-sm mt-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-navy flex items-center gap-2">
+              <i className="fas fa-bullhorn text-primary"></i>
+              Recent Notices
+            </h2>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+            </div>
+          ) : notices.length === 0 ? (
+            <div className="text-center py-8 text-text-muted">
+              <i className="fas fa-check-circle text-3xl mb-3 block opacity-30 text-success"></i>
+              No new notices for you.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+              {notices.slice(0, 4).map((notice) => (
+                <div
+                  key={notice._id}
+                  className="bg-bg border border-border rounded-2xl p-5 transition-all hover:border-primary/30 hover:shadow-md cursor-default"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <i className="fas fa-bell"></i>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-navy text-sm">{notice.title}</h3>
+                        <NoticeTypeBadge type={notice.type} />
+                      </div>
+                      <p className="text-xs text-text-secondary line-clamp-2 mb-2">
+                        {notice.message}
+                      </p>
+                      <p className="text-[10px] text-text-muted font-medium uppercase tracking-wider">
+                        Posted: {new Date(notice.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}

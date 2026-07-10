@@ -171,10 +171,8 @@ export default function AdminNotices() {
 
   const getAudienceBadge = (audience: string) => {
     const map: Record<string, string> = {
-      "All Consumers": "bg-teal-50 text-teal-700",
-      Zone: "bg-indigo-50 text-indigo-700",
-      Ward: "bg-cyan-50 text-cyan-700",
-      "Consumer Group": "bg-rose-50 text-rose-700",
+      Citizen: "bg-teal-50 text-teal-700",
+      Worker: "bg-indigo-50 text-indigo-700",
     };
     return `px-2 py-0.5 rounded-md text-[10px] font-semibold ${
       map[audience] || "bg-slate-100 text-slate-600"

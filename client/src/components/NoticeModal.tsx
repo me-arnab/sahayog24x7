@@ -13,7 +13,7 @@ const emptyForm: NoticeFormData = {
   title: "",
   message: "",
   type: "General",
-  audience: "All Consumers",
+  audience: "Citizen",
   status: "Active",
   startDate: "",
   endDate: "",
@@ -28,12 +28,7 @@ const toLocalDatetime = (iso: string) => {
 };
 
 const noticeTypes = ["Maintenance", "Payment", "Outage", "General"] as const;
-const audiences = [
-  "All Consumers",
-  "Zone",
-  "Ward",
-  "Consumer Group",
-] as const;
+const audiences = ["Citizen", "Worker"] as const;
 const statuses: NoticeStatus[] = ["Active", "Scheduled", "Inactive"];
 
 export function NoticeModal({

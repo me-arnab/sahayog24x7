@@ -21,7 +21,7 @@ const noticeSchema = new mongoose.Schema(
     },
     audience: {
       type: String,
-      enum: ["All Consumers", "Zone", "Ward", "Consumer Group"],
+      enum: ["Citizen", "Worker"],
       required: [true, "Audience is required"],
     },
     status: {
