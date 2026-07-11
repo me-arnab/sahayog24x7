@@ -3,10 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
+import { createComplaint, getMyComplaints } from "../api/complaints";
 import { getConsumerNotices } from "../api/notices";
 import type { Notice } from "../types/notice";
 import { StatusBadge, NoticeTypeBadge } from "../components/StatusBadge";
 import type { CitizenComplaint, CitizenUser, DashboardStats } from "../types";
+import { AddressForm } from "../components/AddressForm";
+import type { LocationData, StructuredAddress } from "../types";
 
 const getInitialForm = (citizen: CitizenUser | null) => ({
   name: citizen?.name || "",
@@ -43,6 +46,7 @@ export default function UserDashboard() {
   const { citizen, isLoading: authLoading } = useAuth();
   const [complaints, setComplaints] = useState<CitizenComplaint[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
+  const [showNoticePopup, setShowNoticePopup] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState<{
@@ -50,6 +54,19 @@ export default function UserDashboard() {
     type: "success" | "error";
   } | null>(null);
   const [form, setForm] = useState(getInitialForm(citizen));
+  
+  // New address state
+  const [addressData, setAddressData] = useState<{
+    addressType: "RURAL" | "URBAN";
+    locationMethod: "GPS" | "MANUAL";
+    location: LocationData | undefined;
+    address: StructuredAddress;
+  }>({
+    addressType: "URBAN",
+    locationMethod: "MANUAL",
+    location: undefined,
+    address: {},
+  });
 
   const notify = useCallback(
     (message: string, type: "success" | "error" = "success") => {
@@ -67,7 +84,13 @@ export default function UserDashboard() {
         getConsumerNotices(),
       ]);
       setComplaints(compData);
-      setNotices(noticeData.filter((n) => n.audience === "Citizen"));
+      const citizenNotices = noticeData.filter((n) => n.audience === "Citizen");
+      setNotices(citizenNotices);
+      
+      if (citizenNotices.length > 0 && !sessionStorage.getItem("citizen_notice_shown")) {
+        setShowNoticePopup(true);
+        sessionStorage.setItem("citizen_notice_shown", "true");
+      }
     } catch {
       notify("Failed to load data", "error");
     } finally {
@@ -104,16 +127,21 @@ export default function UserDashboard() {
 
     setIsSubmitting(true);
     try {
-      const result = await createComplaint({
-        name: form.name || citizen.name,
-        phone: form.phone || citizen.phone,
-        consumerId: form.consumerId || citizen.consumerId,
-        location: form.location || citizen.consumerId,
+      const payload = {
+        name: form.name,
+        phone: form.phone,
+        consumerId: form.consumerId,
+        location: addressData.location,
         zone: form.zone,
         issueType: form.issueType,
         description: form.description,
         emergency: form.emergency,
-      });
+        address: addressData.address,
+        addressType: addressData.addressType,
+        locationMethod: addressData.locationMethod,
+      };
+
+      const result = await createComplaint(payload);
 
       notify(result.message || "Complaint submitted successfully");
       setForm(getInitialForm(citizen));
@@ -343,17 +371,11 @@ export default function UserDashboard() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Location *</label>
-              <input
-                type="text"
-                value={form.location}
-                onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
-                placeholder="Enter your area / location"
-                required
-                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-              />
-            </div>
+            <AddressForm 
+              onAddressChange={(type, method, loc, addr) => 
+                setAddressData({ addressType: type, locationMethod: method, location: loc, address: addr })
+              }
+            />
 
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">Zone *</label>
@@ -443,7 +465,63 @@ export default function UserDashboard() {
           </form>
         </div>
       </div>
+      {/* Notice Popup Modal */}
+      {showNoticePopup && notices.length > 0 && (
+        <div
+          className="fixed inset-0 bg-navy/60 backdrop-blur-sm z-[100] flex items-center justify-center p-5 animate-fade-in"
+          onClick={() => setShowNoticePopup(false)}
+        >
+          <div
+            className="bg-card rounded-2xl max-w-[500px] w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <h3 className="text-lg font-bold text-navy flex items-center gap-2">
+                <i className="fas fa-bell text-primary animate-bounce"></i>
+                Important Announcements
+              </h3>
+              <button
+                onClick={() => setShowNoticePopup(false)}
+                className="text-2xl text-text-muted hover:text-navy transition-colors bg-transparent border-none cursor-pointer leading-none"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-text-secondary">
+                You have {notices.length} new {notices.length === 1 ? 'notice' : 'notices'} from the electricity board:
+              </p>
+              
+              <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2">
+                {notices.map((notice) => (
+                  <div key={notice._id} className="bg-bg border border-border rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-bold text-navy text-sm">{notice.title}</h4>
+                      <NoticeTypeBadge type={notice.type} />
+                    </div>
+                    <p className="text-sm text-text-secondary">{notice.message}</p>
+                    <p className="text-xs text-text-muted mt-2">
+                      Valid until: {new Date(notice.endDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-border flex justify-end">
+              <button
+                onClick={() => setShowNoticePopup(false)}
+                className="bg-primary text-white px-6 py-2 rounded-xl font-semibold text-sm cursor-pointer shadow-md shadow-blue-500/20 hover:-translate-y-0.5 transition-all"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
+      {/* Notification Toast */}
       {notification && (
         <div
           className={`fixed top-24 right-6 px-5 py-3.5 rounded-xl text-white font-semibold text-sm

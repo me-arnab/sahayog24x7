@@ -66,6 +66,9 @@ exports.createComplaint = async (req, res) => {
       issueType,
       description,
       emergency,
+      addressType,
+      locationMethod,
+      address,
     } = req.body;
 
     if (!issueType || !description) {
@@ -75,15 +78,44 @@ exports.createComplaint = async (req, res) => {
     }
 
     const complaintId = await generateComplaintId();
+    
+    // Support both string 'location' (legacy) and object 'location' (new GPS capture)
+    let lat = null, lng = null, acc = null, capAt = null;
+    let legacyLocationString = "";
+    if (typeof location === "object" && location !== null) {
+      lat = location.latitude || null;
+      lng = location.longitude || null;
+      acc = location.accuracy || null;
+      capAt = location.timestamp ? new Date(location.timestamp) : null;
+      legacyLocationString = `${lat}, ${lng}`;
+    } else {
+      legacyLocationString = String(location || consumerId || citizen.consumerId || "").trim();
+    }
+
+    // Support both string 'address' (legacy) and object 'address' (new structured)
+    let structAddr = {};
+    let legacyAddressString = "";
+    if (typeof address === "object" && address !== null) {
+      structAddr = address;
+      legacyAddressString = address.fullAddress || [
+        address.houseNumber, address.road, address.locality, address.village,
+        address.wardNumber ? `Ward ${address.wardNumber}` : "",
+        address.municipality, address.gramPanchayat, address.block,
+        address.subDivision, address.district, address.state, address.pinCode
+      ].filter(Boolean).join(", ");
+    } else {
+      legacyAddressString = String(address || location || consumerId || citizen.consumerId || "").trim();
+    }
+
     const complaint = await Complaint.create({
       complaintId,
       userId: citizen._id,
       consumerName: String(name || citizen.name || "").trim(),
       phone: String(phone || citizen.phone || "").trim(),
-      location: String(location || consumerId || citizen.consumerId || "").trim(),
+      location: legacyLocationString,
       zone: String(zone || "ward-1").trim(),
       issueType: String(issueType).trim(),
-      address: String(location || consumerId || citizen.consumerId || "").trim(),
+      address: legacyAddressString,
       description: String(description).trim(),
       emergency:
         emergency === true ||
@@ -95,6 +127,27 @@ exports.createComplaint = async (req, res) => {
       photos: Array.isArray(req.body.photos) ? req.body.photos : [],
       assignedWorker: null,
       assignedTeam: null,
+      
+      // New structured fields
+      addressType: addressType || "URBAN",
+      locationMethod: locationMethod || "MANUAL",
+      latitude: lat,
+      longitude: lng,
+      accuracy: acc,
+      capturedAt: capAt,
+      state: structAddr.state || "",
+      district: structAddr.district || "",
+      subDivision: structAddr.subDivision || "",
+      block: structAddr.block || "",
+      gramPanchayat: structAddr.gramPanchayat || "",
+      municipality: structAddr.municipality || "",
+      wardNumber: structAddr.wardNumber || "",
+      village: structAddr.village || "",
+      locality: structAddr.locality || "",
+      road: structAddr.road || "",
+      houseNumber: structAddr.houseNumber || "",
+      pinCode: structAddr.pinCode || "",
+      fullAddress: legacyAddressString,
     });
 
     res.status(201).json({

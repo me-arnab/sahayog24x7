@@ -21,7 +21,7 @@ export default function UserNotices() {
       setIsLoading(true);
       setError("");
       const data = await getConsumerNotices();
-      setNotices(data);
+      setNotices(data.filter((n) => n.audience === "Citizen"));
     } catch {
       setError("Failed to load notices");
     } finally {

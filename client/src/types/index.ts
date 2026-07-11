@@ -49,6 +49,29 @@ export interface LoginCredentials {
 }
 
 // ─── Complaints ───
+export interface LocationData {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  timestamp: string;
+}
+
+export interface StructuredAddress {
+  state?: string;
+  district?: string;
+  subDivision?: string;
+  block?: string;
+  gramPanchayat?: string;
+  municipality?: string;
+  wardNumber?: string;
+  village?: string;
+  locality?: string;
+  road?: string;
+  houseNumber?: string;
+  pinCode?: string;
+  fullAddress?: string;
+}
+
 export type ComplaintStatus =
   | "ASSIGNED"
   | "IN_PROGRESS"
@@ -80,10 +103,29 @@ export interface CitizenComplaint {
   userId: string | null;
   consumerName: string;
   phone: string;
-  location: string;
+  location: string | LocationData;
   zone: string;
   issueType: string;
-  address: string;
+  address: string | StructuredAddress;
+  addressType?: "RURAL" | "URBAN";
+  locationMethod?: "GPS" | "MANUAL";
+  latitude?: number;
+  longitude?: number;
+  accuracy?: number;
+  capturedAt?: string;
+  state?: string;
+  district?: string;
+  subDivision?: string;
+  block?: string;
+  gramPanchayat?: string;
+  municipality?: string;
+  wardNumber?: string;
+  village?: string;
+  locality?: string;
+  road?: string;
+  houseNumber?: string;
+  pinCode?: string;
+  fullAddress?: string;
   description: string;
   emergency: boolean;
   status: "received" | "ASSIGNED" | "IN_PROGRESS" | "COMPLETED" | "in-progress" | "resolved" | "escalated";
@@ -103,9 +145,12 @@ export interface CreateComplaintPayload {
   name: string;
   phone: string;
   consumerId: string;
-  location?: string;
+  location?: string | LocationData;
   zone?: string;
   issueType: string;
+  address?: string | StructuredAddress;
+  addressType?: "RURAL" | "URBAN";
+  locationMethod?: "GPS" | "MANUAL";
   description: string;
   emergency: boolean;
   priority?: string;

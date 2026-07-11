@@ -385,7 +385,30 @@ export default function WorkerDashboard() {
                 </div>
                 <div className="col-span-2">
                   <p className="text-xs text-text-muted uppercase font-medium tracking-wider mb-1">Address</p>
-                  <p className="text-text-secondary">{selectedComplaint.address}</p>
+                  <div className="text-sm text-text-secondary">
+                    {typeof selectedComplaint.address === "object" ? (
+                      <>
+                        <p>{selectedComplaint.address.fullAddress}</p>
+                        {selectedComplaint.addressType && (
+                          <span className="inline-block mt-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">
+                            {selectedComplaint.addressType}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <p>{String(selectedComplaint.address || selectedComplaint.location)}</p>
+                    )}
+                    {typeof selectedComplaint.location === "object" && selectedComplaint.location?.latitude && (
+                      <a
+                        href={`https://maps.google.com/?q=${selectedComplaint.location.latitude},${selectedComplaint.location.longitude}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline"
+                      >
+                        <i className="fas fa-map-marker-alt"></i> Navigate via Map
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
 

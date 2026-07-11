@@ -214,6 +214,9 @@ exports.getConsumerNotices = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
+    console.log(`[getConsumerNotices] Found ${notices.length} active notices`);
+    console.log(`[getConsumerNotices] Notices:`, JSON.stringify(notices, null, 2));
+
     res.json(notices);
   } catch (error) {
     res.status(500).json({ message: error.message });
