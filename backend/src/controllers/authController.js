@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const User = require("../models/User");
 const Worker = require("../models/Worker");
+const nodemailer = require("nodemailer");
 
 const fallbackWorkers = new Map();
 const fallbackUsers = new Map();
@@ -508,6 +509,193 @@ exports.login = async (req, res) => {
     return res.json({ token, worker: { id: worker._id, employeeId: worker.employeeId, name: worker.name, role: worker.role } });
   } catch (error) {
     console.error("Staff login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    let user;
+
+    if (!isMongoReady()) {
+      user = await fallbackFindUser({ email: normalizedEmail });
+    } else {
+      user = await User.findOne({ email: normalizedEmail });
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User with this email does not exist" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    if (!isMongoReady()) {
+      user.otp = hashedOtp;
+      user.otpExpires = otpExpires;
+      fallbackUsers.set(normalizedEmail, user);
+    } else {
+      user.otp = hashedOtp;
+      user.otpExpires = otpExpires;
+      await user.save();
+    }
+
+    // Send email via Nodemailer
+    try {
+      const emailUser = process.env.EMAIL_USER;
+      const emailPass = process.env.EMAIL_PASS;
+
+      if (emailUser && emailPass) {
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: emailUser,
+            pass: emailPass,
+          },
+        });
+
+        const mailOptions = {
+          from: `"Sahayog24x7 Support" <${emailUser}>`,
+          to: user.email,
+          subject: "Forgot Password OTP Verification",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+              <h2 style="color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; margin-top: 0;">Password Reset Request</h2>
+              <p style="color: #475569; font-size: 14px;">Hello ${user.name},</p>
+              <p style="color: #475569; font-size: 14px;">We received a request to reset your password. Use the verification code below to proceed:</p>
+              <div style="margin: 25px 0; text-align: center;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #3b82f6; background-color: #f1f5f9; padding: 10px 24px; border-radius: 8px; border: 1px solid #cbd5e1; display: inline-block;">${otp}</span>
+              </div>
+              <p style="color: #ef4444; font-size: 13px; font-weight: 500;">This code will expire in 5 minutes. If you did not make this request, you can safely ignore this email.</p>
+              <p style="font-size: 11px; color: #94a3b8; margin-top: 25px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                This message was sent automatically from the Sahayog24x7 Auth System.
+              </p>
+            </div>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`OTP email sent successfully to ${user.email}`);
+      } else {
+        console.warn("=== [Forgot Password OTP Fallback] ===");
+        console.warn(`Email: ${user.email}`);
+        console.warn(`Generated OTP: ${otp}`);
+        console.warn("======================================");
+      }
+    } catch (mailError) {
+      console.error("Failed to send OTP email:", mailError.message);
+      // We print to console, but don't fail the request so it can fallback to console during dev
+    }
+
+    res.json({ message: "OTP sent successfully to your email." });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    let user;
+
+    if (!isMongoReady()) {
+      user = await fallbackFindUser({ email: normalizedEmail });
+    } else {
+      user = await User.findOne({ email: normalizedEmail });
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User with this email does not exist" });
+    }
+
+    if (!user.otp || !user.otpExpires) {
+      return res.status(400).json({ message: "No OTP requested for this user" });
+    }
+
+    if (new Date() > new Date(user.otpExpires)) {
+      return res.status(400).json({ message: "OTP has expired" });
+    }
+
+    const isMatch = await bcrypt.compare(String(otp).trim(), user.otp);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    res.json({ message: "OTP verified successfully" });
+  } catch (error) {
+    console.error("Verify OTP error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+    if (!email || !otp || !password) {
+      return res.status(400).json({ message: "Email, OTP and password are required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    let user;
+
+    if (!isMongoReady()) {
+      user = await fallbackFindUser({ email: normalizedEmail });
+    } else {
+      user = await User.findOne({ email: normalizedEmail });
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User with this email does not exist" });
+    }
+
+    if (!user.otp || !user.otpExpires) {
+      return res.status(400).json({ message: "No OTP requested or validation session expired" });
+    }
+
+    if (new Date() > new Date(user.otpExpires)) {
+      return res.status(400).json({ message: "OTP validation has expired" });
+    }
+
+    const isMatch = await bcrypt.compare(String(otp).trim(), user.otp);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid OTP credentials" });
+    }
+
+    // Hash new password and clear OTP
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    if (!isMongoReady()) {
+      user.password = hashedPassword;
+      user.otp = null;
+      user.otpExpires = null;
+      fallbackUsers.set(normalizedEmail, user);
+    } else {
+      user.password = hashedPassword;
+      user.otp = null;
+      user.otpExpires = null;
+      await user.save();
+    }
+
+    res.json({ message: "Password reset successfully. You can now login with your new password." });
+  } catch (error) {
+    console.error("Reset password error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

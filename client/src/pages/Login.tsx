@@ -106,19 +106,28 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="text-center mt-6 flex justify-between px-2">
-            <Link
-              to="/"
-              className="text-primary text-sm font-medium no-underline hover:text-primary-light transition-colors"
-            >
-              <i className="fas fa-arrow-left mr-1.5"></i> Back to Home
-            </Link>
+          <div className="text-center mt-6 flex flex-col gap-3">
+            <div className="flex justify-center px-2">
+              <Link
+                to="/forgot-password"
+                className="text-primary text-sm font-semibold no-underline hover:text-primary-light transition-colors"
+              >
+                Forgot Password?
+              </Link>
+              
+              {/* <Link
+                to="/register"
+                className="text-primary text-sm font-semibold no-underline hover:text-primary-light transition-colors"
+              >
+                Register
+              </Link> */}
+            </div>
             
             <Link
-              to="/register"
-              className="text-primary text-sm font-semibold no-underline hover:text-primary-light transition-colors"
+              to="/"
+              className="text-text-muted text-sm font-medium no-underline hover:text-navy transition-colors inline-block mt-2"
             >
-              Register
+              <i className="fas fa-arrow-left mr-1.5"></i> Back to Home
             </Link>
           </div>
         </div>

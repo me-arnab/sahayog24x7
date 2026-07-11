@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import StaffLogin from "./pages/StaffLogin";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
 
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -34,6 +35,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/staff/login" element={<StaffLogin />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Protected Dashboard Routes */}
           <Route element={<ProtectedRoute allowedRoles={["user", "admin", "worker"]}><DashboardLayout /></ProtectedRoute>}>

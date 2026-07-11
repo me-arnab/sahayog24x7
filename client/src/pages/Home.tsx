@@ -134,7 +134,7 @@ export default function Home() {
       <Navbar />
 
     {/* Hero */}
-      <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-6 py-16 overflow-hidden">
+      <section id="hero" className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-6 py-16 overflow-hidden">
         {/* Layered gradient background */}
         <div className="absolute inset-0 bg-navy" />
         <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-primary/20 blur-[120px] animate-pulse-glow" />
@@ -354,7 +354,7 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   <i className="fas fa-map-marker-alt"></i>
                 </div>
-                <span>Mankundu, Hooghly, West Bengal, 712302</span>
+                <span>Mankundu, Hooghly, West Bengal, 712139</span>
               </div>
             </div>
           </div>
