@@ -354,7 +354,7 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   <i className="fas fa-map-marker-alt"></i>
                 </div>
-                <span>Mankundu, Hooghly, West Bengal, 712302</span>
+                <span>Mankundu, Hooghly, West Bengal, 712139</span>
               </div>
             </div>
           </div>

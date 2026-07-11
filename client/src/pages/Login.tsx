@@ -107,7 +107,7 @@ export default function Login() {
           </form>
 
           <div className="text-center mt-6 flex flex-col gap-3">
-            <div className="flex justify-between px-2">
+            <div className="flex justify-center px-2">
               <Link
                 to="/forgot-password"
                 className="text-primary text-sm font-semibold no-underline hover:text-primary-light transition-colors"
@@ -115,12 +115,12 @@ export default function Login() {
                 Forgot Password?
               </Link>
               
-              <Link
+              {/* <Link
                 to="/register"
                 className="text-primary text-sm font-semibold no-underline hover:text-primary-light transition-colors"
               >
                 Register
-              </Link>
+              </Link> */}
             </div>
             
             <Link
