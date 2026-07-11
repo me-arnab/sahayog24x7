@@ -102,3 +102,52 @@ exports.submitMessage = async (req, res) => {
     });
   }
 };
+
+// @desc    Get all contact messages
+// @route   GET /api/contact
+// @access  Private/Admin
+exports.getContactMessages = async (req, res) => {
+  try {
+    const messages = await ContactMessage.find().sort({ createdAt: -1 });
+    res.json(messages);
+  } catch (error) {
+    console.error("Error fetching contact messages:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Reply to a contact message (simulated email)
+// @route   POST /api/contact/:id/reply
+// @access  Private/Admin
+exports.replyToContactMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { replyMessage } = req.body;
+
+    if (!replyMessage) {
+      return res.status(400).json({ message: "Reply message is required" });
+    }
+
+    const message = await ContactMessage.findById(id);
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // SIMULATED EMAIL REPLY
+    console.log("=========================================");
+    console.log(`[SIMULATED EMAIL DISPATCH]`);
+    console.log(`To: ${message.email}`);
+    console.log(`Subject: Re: ${message.subject}`);
+    console.log(`Body:\n${replyMessage}`);
+    console.log("=========================================");
+
+    // Mark as resolved
+    message.status = "resolved";
+    await message.save();
+
+    res.json({ message: "Reply sent successfully (simulated) and marked as resolved", contactMessage: message });
+  } catch (error) {
+    console.error("Error replying to contact message:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

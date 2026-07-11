@@ -11,6 +11,8 @@ const {
   getAdminComplaints,
   startWork,
   seedComplaints,
+  assignComplaint,
+  updateComplaintStatus,
 } = require("../controllers/complaintController");
 
 router.post("/", auth, createComplaint);
@@ -20,6 +22,8 @@ router.get("/admin", auth, admin, getAdminComplaints);
 router.get("/", auth, getAssignedComplaints);
 router.get("/:id", auth, getComplaintById);
 router.put("/:id/start", auth, startWork);
+router.put("/:id/assign", auth, admin, assignComplaint);
+router.put("/:id/status", auth, admin, updateComplaintStatus);
 router.post("/seed", seedComplaints);
 
 module.exports = router;

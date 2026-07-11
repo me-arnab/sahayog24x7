@@ -305,3 +305,64 @@ exports.getAdminComplaints = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.assignComplaint = async (req, res) => {
+  try {
+    const { workerId } = req.body;
+    if (!workerId) {
+      return res.status(400).json({ message: "Worker ID is required" });
+    }
+
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) {
+      return res.status(404).json({ message: "Complaint not found" });
+    }
+
+    const worker = await Worker.findById(workerId);
+    if (!worker) {
+      return res.status(404).json({ message: "Worker not found" });
+    }
+
+    complaint.assignedWorker = worker._id;
+    complaint.status = "ASSIGNED";
+    await complaint.save();
+
+    res.json({
+      message: "Worker assigned successfully",
+      complaint,
+    });
+  } catch (error) {
+    console.error("Assign complaint error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.updateComplaintStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
+    const validStatuses = ["received", "ASSIGNED", "IN_PROGRESS", "COMPLETED", "in-progress", "resolved", "escalated"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) {
+      return res.status(404).json({ message: "Complaint not found" });
+    }
+
+    complaint.status = status;
+    await complaint.save();
+
+    res.json({
+      message: `Complaint status updated to ${status}`,
+      complaint,
+    });
+  } catch (error) {
+    console.error("Update complaint status error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

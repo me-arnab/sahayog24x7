@@ -9,16 +9,15 @@ import {
 import { submitWorkReport } from "../api/workReport";
 import { getConsumerNotices } from "../api/notices";
 import type { Notice } from "../types/notice";
-import { StatusBadge, NoticeTypeBadge } from "../components/StatusBadge";
-import type { Complaint } from "../types";
-import logo from "../assets/logo.png";
+import { NoticeTypeBadge } from "../components/StatusBadge";
+import type { CitizenComplaint } from "../types";
 export default function WorkerDashboard() {
   const navigate = useNavigate();
-  const { worker, isLoading: authLoading, logout } = useAuth();
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const { worker, isLoading: authLoading } = useAuth();
+  const [complaints, setComplaints] = useState<CitizenComplaint[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [selectedComplaint, setSelectedComplaint] = useState<CitizenComplaint | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [reportForm, setReportForm] = useState({
@@ -60,7 +59,8 @@ export default function WorkerDashboard() {
         getAssignedComplaints(),
         getConsumerNotices(),
       ]);
-      setComplaints(compData);
+      const activeComplaints = compData.filter(c => !["PENDING_APPROVAL", "COMPLETED", "resolved"].includes(c.status));
+      setComplaints(activeComplaints);
       setNotices(noticeData.filter((n) => n.audience === "Worker"));
     } catch {
       notify("Failed to load data", "error");
@@ -113,12 +113,6 @@ export default function WorkerDashboard() {
     e.preventDefault();
     if (!selectedComplaint) return;
 
-    setShowConfirmModal(true);
-  };
-
-  const submitConfirmedReport = async () => {
-    if (!selectedComplaint) return;
-
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -132,7 +126,6 @@ export default function WorkerDashboard() {
       const result = await submitWorkReport(formData);
       notify(result.message || "Work report submitted successfully");
       setShowReportModal(false);
-      setShowConfirmModal(false);
       setReportForm({ workPerformed: "", conditionAfter: "", photo: null });
       loadData();
     } catch (error) {
@@ -151,35 +144,9 @@ export default function WorkerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-bg">
-      <div className="max-w-[1400px] mx-auto p-6">
-        {/* Navbar */}
-        <nav className="bg-card backdrop-blur-xl p-4 rounded-2xl mb-6 flex justify-between items-center shadow-sm border border-border">
-          <div className="flex items-center gap-3">
-            <img
-              src={logo}
-              className="w-9 h-9 rounded-lg"
-              alt="logo"
-            />
-            <span className="font-bold text-lg text-navy">
-              Sahayog<span className="text-primary">24</span>
-              <span className="text-accent-cyan">x7</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="bg-gradient-to-r from-primary to-accent-cyan text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md shadow-blue-500/20">
-              <i className="fas fa-user-circle mr-1.5"></i>
-              {worker?.name || worker?.employeeId}
-            </span>
-            <button
-              onClick={logout}
-              className="bg-white border border-border text-text-secondary px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer hover:border-error hover:text-error hover:bg-red-50 transition-all"
-            >
-              <i className="fas fa-sign-out-alt mr-1.5"></i>
-              Logout
-            </button>
-          </div>
-        </nav>
+    <div className="w-full">
+      <div className="max-w-[1400px] mx-auto w-full">
+
 
         {/* Stats */}
         <div className="grid grid-cols-4 gap-5 mb-6 max-md:grid-cols-2 max-sm:grid-cols-1">
@@ -256,6 +223,8 @@ export default function WorkerDashboard() {
                           ? "bg-amber-50 text-amber-700"
                           : c.status === "IN_PROGRESS"
                           ? "bg-blue-50 text-blue-700"
+                          : c.status === "PENDING_APPROVAL"
+                          ? "bg-purple-50 text-purple-700"
                           : "bg-green-50 text-green-700"
                       }`}
                     >
@@ -361,6 +330,8 @@ export default function WorkerDashboard() {
                         ? "bg-amber-50 text-amber-700"
                         : selectedComplaint.status === "IN_PROGRESS"
                         ? "bg-blue-50 text-blue-700"
+                        : selectedComplaint.status === "PENDING_APPROVAL"
+                        ? "bg-purple-50 text-purple-700"
                         : "bg-green-50 text-green-700"
                     }`}
                   >
@@ -386,7 +357,7 @@ export default function WorkerDashboard() {
                 <div className="col-span-2">
                   <p className="text-xs text-text-muted uppercase font-medium tracking-wider mb-1">Address</p>
                   <div className="text-sm text-text-secondary">
-                    {typeof selectedComplaint.address === "object" ? (
+                    {typeof selectedComplaint.address === "object" && selectedComplaint.address !== null ? (
                       <>
                         <p>{selectedComplaint.address.fullAddress}</p>
                         {selectedComplaint.addressType && (
@@ -440,6 +411,11 @@ export default function WorkerDashboard() {
                 >
                   <i className="fas fa-file-alt mr-1.5"></i> Submit Work Report
                 </button>
+              )}
+              {selectedComplaint.status === "PENDING_APPROVAL" && (
+                <p className="w-full text-center text-purple-600 font-semibold bg-purple-50 py-3 rounded-xl">
+                  <i className="fas fa-hourglass-half mr-1.5"></i> Work Submitted (Pending Admin Approval)
+                </p>
               )}
               {selectedComplaint.status === "COMPLETED" && (
                 <p className="w-full text-center text-success font-semibold">
@@ -542,66 +518,7 @@ export default function WorkerDashboard() {
         </div>
       )}
 
-      {showConfirmModal && (
-        <div
-          className="fixed inset-0 bg-navy/70 backdrop-blur-sm z-[60] flex items-center justify-center p-5"
-          onClick={() => !isSubmitting && setShowConfirmModal(false)}
-        >
-          <div
-            className="bg-card rounded-2xl max-w-[460px] w-full shadow-2xl border border-border overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6 border-b border-border">
-              <h3 className="text-lg font-bold text-navy flex items-center gap-2">
-                <i className="fas fa-circle-check text-success"></i> Confirm Submission
-              </h3>
-            </div>
 
-            <div className="p-6 space-y-4">
-              <p className="text-sm text-text-secondary leading-relaxed">
-                Please confirm that the work report is complete. Once submitted, the complaint will be marked as completed and the uploaded image will be saved.
-              </p>
-
-              <div className="bg-bg rounded-xl border border-border p-4 text-sm space-y-2">
-                <div>
-                  <span className="text-text-muted">Complaint: </span>
-                  <span className="font-semibold text-navy">{selectedComplaint?.complaintId}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted">Image: </span>
-                  <span className="font-semibold text-navy">{reportForm.photo?.name || "No file selected"}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 border-t border-border flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowConfirmModal(false)}
-                disabled={isSubmitting}
-                className="flex-1 bg-white border border-border text-text-secondary py-3 rounded-xl font-semibold text-sm cursor-pointer hover:border-primary hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={submitConfirmedReport}
-                disabled={isSubmitting}
-                className="flex-1 bg-success text-white py-3 rounded-xl font-semibold text-sm cursor-pointer shadow-md shadow-green-500/20 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                    Submitting...
-                  </span>
-                ) : (
-                  <span><i className="fas fa-paper-plane mr-1.5"></i> Confirm & Submit</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Notification Toast */}
       {notification && (

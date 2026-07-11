@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Navbar } from "../components/Navbar";
-import { Footer } from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
 import { StatusBadge, NoticeTypeBadge } from "../components/StatusBadge";
 import { getConsumerNotices } from "../api/notices";
@@ -58,9 +56,8 @@ export default function UserNotices() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg">
-      <Navbar />
-      <div className="max-w-[1400px] mx-auto p-6 w-full space-y-6">
+    <div className="w-full">
+      <div className="max-w-[1400px] mx-auto w-full space-y-6">
         <div className="flex items-center justify-between gap-4 max-md:flex-col max-md:items-start">
           <div>
             <h1 className="text-2xl font-bold text-navy flex items-center gap-3">
@@ -316,7 +313,6 @@ export default function UserNotices() {
         </div>
       )}
 
-      <Footer />
     </div>
   );
 }

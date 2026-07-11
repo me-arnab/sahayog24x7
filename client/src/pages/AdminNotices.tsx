@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { Navbar } from "../components/Navbar";
-import { Footer } from "../components/Footer";
 import { NoticeStats } from "../components/NoticeStats";
 import { NoticeFilters } from "../components/NoticeFilters";
 import { NoticeModal } from "../components/NoticeModal";
@@ -180,9 +178,8 @@ export default function AdminNotices() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg">
-      <Navbar />
-      <div className="max-w-[1500px] mx-auto p-6 w-full space-y-6">
+    <div className="w-full">
+      <div className="max-w-[1500px] mx-auto w-full space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between gap-4 max-md:flex-col max-md:items-start">
           <div>
@@ -556,8 +553,6 @@ export default function AdminNotices() {
           animation: slide-in 0.4s ease forwards;
         }
       `}</style>
-
-      <Footer />
     </div>
   );
 }

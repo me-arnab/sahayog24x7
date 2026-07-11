@@ -6,6 +6,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import type {
   CitizenAuthResponse,
   CitizenLoginCredentials,
@@ -42,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [citizen, setCitizen] = useState<CitizenUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const sessionType = localStorage.getItem(SESSION_KEY);
@@ -127,7 +129,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setWorker(null);
     setAdmin(null);
     setCitizen(null);
-  }, []);
+    navigate("/", { replace: true });
+  }, [navigate]);
 
   return (
     <AuthContext.Provider

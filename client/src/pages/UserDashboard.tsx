@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Navbar } from "../components/Navbar";
-import { Footer } from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
 import { createComplaint, getMyComplaints } from "../api/complaints";
 import { getConsumerNotices } from "../api/notices";
@@ -28,6 +26,7 @@ const statusBadge = (status: CitizenComplaint["status"]) => {
     escalated: "bg-red-50 text-red-700",
     ASSIGNED: "bg-amber-50 text-amber-700",
     IN_PROGRESS: "bg-blue-50 text-blue-700",
+    PENDING_APPROVAL: "bg-purple-50 text-purple-700",
     COMPLETED: "bg-green-50 text-green-700",
   };
 
@@ -113,6 +112,7 @@ export default function UserDashboard() {
     resolved: complaints.filter((c) =>
       ["resolved", "COMPLETED"].includes(c.status)
     ).length,
+    pendingApproval: complaints.filter((c) => c.status === "PENDING_APPROVAL").length,
     inProgress: complaints.filter((c) =>
       ["in-progress", "IN_PROGRESS"].includes(c.status)
     ).length,
@@ -172,9 +172,8 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg">
-      <Navbar />
-      <div className="max-w-[1400px] mx-auto p-6 w-full space-y-8">
+    <div className="w-full">
+      <div className="max-w-[1400px] mx-auto w-full space-y-8">
         <div className="flex items-center justify-between gap-4 max-md:flex-col max-md:items-start">
           <div>
             <h1 className="text-2xl font-bold text-navy">
@@ -250,12 +249,26 @@ export default function UserDashboard() {
                         <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${emergencyBadge(c.emergency)}`}>
                           {c.emergency ? "Emergency" : "Normal"}
                         </span>
-                        <span className={statusBadge(c.status)}>{c.status.replace("_", " ")}</span>
+                        <span
+                          className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide border ${
+                            c.status === "ASSIGNED"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : c.status === "IN_PROGRESS"
+                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              : c.status === "PENDING_APPROVAL"
+                              ? "bg-purple-50 text-purple-700 border-purple-200"
+                              : c.status === "COMPLETED" || c.status === "resolved"
+                              ? "bg-green-50 text-green-700 border-green-200"
+                              : "bg-slate-50 text-slate-600 border-slate-200"
+                          }`}
+                        >
+                          {c.status.replace("_", " ")}
+                        </span>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-text-muted mb-2 flex-wrap">
-                        <span className="truncate max-w-[200px]" title={typeof c.address === 'object' ? c.address.district || c.address.road : c.address || c.location || "N/A"}>
+                        <span className="truncate max-w-[200px]" title={typeof c.address === 'object' && c.address !== null ? c.address.district || c.address.road : c.address || (typeof c.location === 'object' ? "" : String(c.location || "N/A"))}>
                           <i className="fas fa-map-marker-alt mr-1"></i>
-                          {typeof c.address === 'object' ? c.address.district || c.address.road : c.address || c.location || "N/A"}
+                          {typeof c.address === 'object' && c.address !== null ? c.address.district || c.address.road : c.address || (typeof c.location === 'object' ? "" : String(c.location || "N/A"))}
                         </span>
                         <span>{new Date(c.createdAt).toLocaleDateString()}</span>
                       </div>
@@ -549,8 +562,6 @@ export default function UserDashboard() {
           animation: slide-in 0.4s ease forwards;
         }
       `}</style>
-
-      <Footer />
     </div>
   );
 }

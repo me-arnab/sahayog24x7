@@ -34,6 +34,7 @@ exports.submitReport = async (req, res) => {
         .json({ message: "This complaint is not assigned to you" });
     }
 
+
     if (complaint.status !== "IN_PROGRESS") {
       return res.status(400).json({
         message: `Cannot submit report. Current status: ${complaint.status}. Must be IN_PROGRESS.`,
@@ -46,9 +47,10 @@ exports.submitReport = async (req, res) => {
       afterPhoto,
       workPerformed,
       conditionAfter,
+      status: "pending",
     });
 
-    complaint.status = "COMPLETED";
+    complaint.status = "PENDING_APPROVAL";
     complaint.endTime = new Date();
     complaint.timeTakenInSeconds = Math.floor(
       (complaint.endTime - complaint.startTime) / 1000
@@ -67,6 +69,66 @@ exports.submitReport = async (req, res) => {
       fs.unlink(req.file.path, () => {});
     }
 
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getAllReports = async (req, res) => {
+  try {
+    const reports = await WorkReport.find({})
+      .populate("complaintId", "complaintId issueType consumerName description emergency location address status")
+      .populate("workerId", "name phone employeeId")
+      .sort({ submittedAt: -1 });
+      
+    res.json(reports);
+  } catch (error) {
+    console.error("Get all reports error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.approveReport = async (req, res) => {
+  try {
+    const report = await WorkReport.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    report.status = "approved";
+    await report.save();
+
+    const complaint = await Complaint.findById(report.complaintId);
+    if (complaint) {
+      complaint.status = "COMPLETED";
+      await complaint.save();
+    }
+
+    res.json({ message: "Report approved successfully", report });
+  } catch (error) {
+    console.error("Approve report error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.rejectReport = async (req, res) => {
+  try {
+    const report = await WorkReport.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    report.status = "rejected";
+    await report.save();
+
+    const complaint = await Complaint.findById(report.complaintId);
+    if (complaint) {
+      complaint.status = "IN_PROGRESS";
+      await complaint.save();
+    }
+
+    res.json({ message: "Report rejected successfully", report });
+  } catch (error) {
+    console.error("Reject report error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

@@ -25,6 +25,16 @@ export async function seedWorker(payload: {
   return data;
 }
 
+export async function getWorkers(): Promise<Array<{ id: string; employeeId: string; name: string; role: string; createdAt: string }>> {
+  const { data } = await apiClient.get("/auth/workers");
+  return data;
+}
+
+export async function getAdmins(): Promise<Array<{ id: string; email: string; name: string; role: string; createdAt: string }>> {
+  const { data } = await apiClient.get("/auth/admins");
+  return data;
+}
+
 export async function loginCitizen(payload: {
   identifier: string;
   password: string;

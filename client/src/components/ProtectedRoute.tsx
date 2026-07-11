@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { NavSkeleton } from "./layout/NavSkeleton";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,8 +12,10 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-bg flex overflow-hidden">
+        {/* Empty placeholder for Sidebar area */}
+        <div className="hidden lg:block w-72 bg-white border-r border-border shrink-0" />
+        <NavSkeleton />
       </div>
     );
   }

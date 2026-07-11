@@ -293,6 +293,116 @@ exports.seedWorker = async (req, res) => {
   }
 };
 
+exports.seedAdmin = async (req, res) => {
+  try {
+    const { name, email, phone, consumerId, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "name, email, and password are required" });
+    }
+
+    if (!isMongoReady()) {
+      console.warn("MongoDB unavailable; using in-memory admin store for auth");
+      const existing = await fallbackFindUser({ email });
+      if (existing) {
+        return res.status(409).json({ message: "Admin already exists" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const admin = await fallbackCreateUser({
+        name,
+        email,
+        phone: phone || "0000000000",
+        consumerId: consumerId || `ADMIN-${Date.now()}`,
+        password: hashedPassword,
+      });
+      admin.role = "admin";
+
+      return res.status(201).json({
+        message: "Admin created",
+        admin: { id: admin._id, name: admin.name, email: admin.email, role: admin.role },
+      });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(409).json({ message: "User/Admin with this email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const admin = await User.create({
+      name,
+      email,
+      phone: phone || "0000000000",
+      consumerId: consumerId || `ADMIN-${Date.now()}`,
+      password: hashedPassword,
+      role: "admin",
+    });
+
+    res.status(201).json({
+      message: "Admin created",
+      admin: { id: admin._id, name: admin.name, email: admin.email, role: admin.role },
+    });
+  } catch (error) {
+    console.error("Seed Admin error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getWorkers = async (req, res) => {
+  try {
+    if (!isMongoReady()) {
+      const workers = Array.from(fallbackWorkers.values()).map(w => ({
+        id: w._id,
+        employeeId: w.employeeId,
+        name: w.name,
+        role: w.role,
+        createdAt: w.createdAt
+      }));
+      return res.json(workers);
+    }
+
+    const workers = await Worker.find().select("-password").sort({ createdAt: -1 });
+    res.json(workers.map(w => ({
+      id: w._id,
+      employeeId: w.employeeId,
+      name: w.name,
+      role: w.role,
+      createdAt: w.createdAt
+    })));
+  } catch (error) {
+    console.error("Error fetching workers:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getAdmins = async (req, res) => {
+  try {
+    if (!isMongoReady()) {
+      const admins = Array.from(fallbackUsers.values()).filter(u => u.role === 'admin').map(w => ({
+        id: w._id,
+        email: w.email,
+        name: w.name,
+        role: w.role,
+        createdAt: w.createdAt
+      }));
+      return res.json(admins);
+    }
+
+    const admins = await User.find({ role: "admin" }).select("-password").sort({ createdAt: -1 });
+    res.json(admins.map(w => ({
+      id: w._id,
+      email: w.email,
+      name: w.name,
+      role: w.role,
+      createdAt: w.createdAt
+    })));
+  } catch (error) {
+    console.error("Error fetching admins:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 exports.loginCitizen = async (req, res) => {
   try {
     const { identifier, password } = req.body;

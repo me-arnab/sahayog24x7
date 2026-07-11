@@ -76,6 +76,7 @@ export interface StructuredAddress {
 export type ComplaintStatus =
   | "ASSIGNED"
   | "IN_PROGRESS"
+  | "PENDING_APPROVAL"
   | "COMPLETED"
   | "received"
   | "in-progress"
@@ -128,7 +129,7 @@ export interface CitizenComplaint {
   fullAddress?: string;
   description: string;
   emergency: boolean;
-  status: "received" | "ASSIGNED" | "IN_PROGRESS" | "COMPLETED" | "in-progress" | "resolved" | "escalated";
+  status: "received" | "ASSIGNED" | "IN_PROGRESS" | "PENDING_APPROVAL" | "COMPLETED" | "in-progress" | "resolved" | "escalated";
   priority: string;
   photos: string[];
   assignedWorker: string | null;
