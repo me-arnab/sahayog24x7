@@ -1,11 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { login, loginCitizen, register, seedWorker } = require("../controllers/authController");
+const { login, loginCitizen, register, seedWorker, forgotPassword, verifyOtp, resetPassword } = require("../controllers/authController");
 
 router.post("/register", register);
 router.post("/login-citizen", loginCitizen);
 router.post("/login", login);
 router.post("/seed-worker", seedWorker);
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-otp", verifyOtp);
+router.post("/reset-password", resetPassword);
 
 // Temporary route to seed admin from the browser
 router.get("/seed-admin", async (req, res) => {
