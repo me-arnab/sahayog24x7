@@ -28,7 +28,6 @@ const complaintSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
-    zone: {
     issueType: {
       type: String,
       default: "",

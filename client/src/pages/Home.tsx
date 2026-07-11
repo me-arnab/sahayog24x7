@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { submitContactMessage } from "../api/contact";
+import { toast } from "react-toastify";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import img1 from "../assets/1.png";
@@ -27,6 +30,29 @@ const services = [
 ];
 
 export default function Home() {
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      await submitContactMessage(contactForm);
+      toast.success("Message sent successfully! We will get back to you soon.");
+      setContactForm({ name: "", email: "", subject: "", message: "" });
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to send message. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Electric background animation styles */}
@@ -317,39 +343,58 @@ export default function Home() {
 
           <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
             <h3 className="text-xl font-semibold text-navy mb-6">Send us a Message</h3>
-            <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
+            
+            <form className="flex flex-col gap-4" onSubmit={handleContactSubmit}>
               <input
                 type="text"
                 placeholder="Your Name"
+                value={contactForm.name}
+                onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                 className="w-full p-3.5 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                 required
               />
               <input
                 type="email"
                 placeholder="Your Email"
+                value={contactForm.email}
+                onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                 className="w-full p-3.5 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                 required
               />
               <input
                 type="text"
                 placeholder="Subject"
+                value={contactForm.subject}
+                onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
                 className="w-full p-3.5 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                 required
               />
               <textarea
                 placeholder="Write your message or feedback..."
                 rows={5}
+                value={contactForm.message}
+                onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                 className="w-full p-3.5 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 resize-vertical"
                 required
               ></textarea>
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="w-full bg-gradient-to-r from-primary to-accent-cyan text-white
                   py-4 rounded-xl font-semibold text-sm cursor-pointer
-                  transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30"
+                  transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <i className="fas fa-paper-plane mr-2"></i>
-                Send Message
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Sending...
+                  </span>
+                ) : (
+                  <>
+                    <i className="fas fa-paper-plane mr-2"></i>
+                    Send Message
+                  </>
+                )}
               </button>
             </form>
           </div>

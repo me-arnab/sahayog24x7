@@ -6,6 +6,7 @@ const authRoutes = require("./routes/auth");
 const complaintRoutes = require("./routes/complaints");
 const workReportRoutes = require("./routes/workReport");
 const noticeRoutes = require("./routes/notices");
+const contactRoutes = require("./routes/contact");
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/work-report", workReportRoutes);
 app.use("/api/notices", noticeRoutes);
+app.use("/api/contact", contactRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
