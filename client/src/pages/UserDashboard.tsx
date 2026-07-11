@@ -15,8 +15,6 @@ const getInitialForm = (citizen: CitizenUser | null) => ({
   name: citizen?.name || "",
   phone: citizen?.phone || "",
   consumerId: citizen?.consumerId || "",
-  location: citizen?.consumerId || "",
-  zone: "ward-1",
   issueType: "",
   description: "",
   emergency: false,
@@ -131,8 +129,7 @@ export default function UserDashboard() {
         name: form.name,
         phone: form.phone,
         consumerId: form.consumerId,
-        location: addressData.location,
-        zone: form.zone,
+        location: addressData.location || addressData.address.road || "Unknown",
         issueType: form.issueType,
         description: form.description,
         emergency: form.emergency,
@@ -256,11 +253,10 @@ export default function UserDashboard() {
                         <span className={statusBadge(c.status)}>{c.status.replace("_", " ")}</span>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-text-muted mb-2 flex-wrap">
-                        <span>
+                        <span className="truncate max-w-[200px]" title={typeof c.address === 'object' ? c.address.district || c.address.road : c.address || c.location || "N/A"}>
                           <i className="fas fa-map-marker-alt mr-1"></i>
-                          {c.location || c.address}
+                          {typeof c.address === 'object' ? c.address.district || c.address.road : c.address || c.location || "N/A"}
                         </span>
-                        <span>Zone: {c.zone || "N/A"}</span>
                         <span>{new Date(c.createdAt).toLocaleDateString()}</span>
                       </div>
                       <p className="text-sm text-text-secondary leading-relaxed line-clamp-1">
@@ -335,40 +331,57 @@ export default function UserDashboard() {
             Submit New Complaint
           </h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-5 max-md:grid-cols-1">
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Full Name</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                placeholder="Enter your full name"
-                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-                required
-              />
-            </div>
+            {/* Step 1: Personal Information */}
+            <div className="col-span-2 bg-slate-50 p-6 rounded-2xl border border-border">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">1</div>
+                <h3 className="text-lg font-bold text-navy">Personal Information</h3>
+              </div>
+              <p className="text-sm text-text-muted mb-6">
+                These details are auto-filled from your profile and cannot be changed here.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Full Name</label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                    placeholder="Enter your full name"
+                    disabled
+                    className="w-full p-3 border border-border rounded-xl bg-slate-100 text-text-muted cursor-not-allowed text-sm focus:outline-none"
+                    required
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number *</label>
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-                placeholder="+91 12345 67890"
-                required
-                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-              />
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number *</label>
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
+                    placeholder="10-digit mobile number"
+                    maxLength={10}
+                    disabled
+                    required
+                    className="w-full p-3 border border-border rounded-xl bg-slate-100 text-text-muted cursor-not-allowed text-sm focus:outline-none"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Consumer ID *</label>
-              <input
-                type="text"
-                value={form.consumerId}
-                onChange={(e) => setForm((p) => ({ ...p, consumerId: e.target.value }))}
-                placeholder="Enter your consumer id"
-                required
-                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-              />
+                <div className="col-span-2 max-md:col-span-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Consumer ID *</label>
+                  <input
+                    type="text"
+                    value={form.consumerId}
+                    onChange={(e) => setForm((p) => ({ ...p, consumerId: e.target.value }))}
+                    placeholder="Enter your consumer id"
+                    disabled
+                    required
+                    className="w-full p-3 border border-border rounded-xl bg-slate-100 text-text-muted cursor-not-allowed text-sm focus:outline-none"
+                  />
+                </div>
+              </div>
             </div>
 
             <AddressForm 
@@ -377,66 +390,60 @@ export default function UserDashboard() {
               }
             />
 
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Zone *</label>
-              <select
-                value={form.zone}
-                onChange={(e) => setForm((p) => ({ ...p, zone: e.target.value }))}
-                required
-                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-              >
-                <option value="ward-1">Ward 1</option>
-                <option value="ward-2">Ward 2</option>
-                <option value="ward-3">Ward 3</option>
-                <option value="ward-4">Ward 4</option>
-                <option value="ward-5">Ward 5</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Issue Type *</label>
-              <select
-                value={form.issueType}
-                onChange={(e) => setForm((p) => ({ ...p, issueType: e.target.value }))}
-                required
-                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-              >
-                <option value="">Select Issue</option>
-                <option value="Power Outage">Power Outage</option>
-                <option value="Low Voltage">Low Voltage</option>
-                <option value="Sparking/Hazard">Sparking/Hazard</option>
-                <option value="Meter Fault">Meter Fault</option>
-                <option value="Transformer Issue">Transformer Issue</option>
-                <option value="Billing Issue">Billing Issue</option>
-              </select>
-            </div>
-
-            <div className="col-span-2 flex items-center justify-between rounded-xl border border-border bg-bg px-4 py-3">
-              <div>
-                <p className="text-sm font-medium text-text-secondary">Emergency</p>
-                <p className="text-xs text-text-muted">Mark this if the complaint needs urgent visibility.</p>
+            {/* Step 3: Complaint Details */}
+            <div className="col-span-2 bg-slate-50 p-6 rounded-2xl border border-border">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">3</div>
+                <h3 className="text-lg font-bold text-navy">Complaint Details</h3>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.emergency}
-                  onChange={(e) => setForm((p) => ({ ...p, emergency: e.target.checked }))}
-                  className="sr-only peer"
-                />
-                <span className="w-12 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border after:border-slate-200 after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:after:translate-x-5"></span>
-              </label>
-            </div>
+              
+              <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Issue Type *</label>
+                  <select
+                    value={form.issueType}
+                    onChange={(e) => setForm((p) => ({ ...p, issueType: e.target.value }))}
+                    required
+                    className="w-full p-3 border border-border rounded-xl bg-white text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  >
+                    <option value="">Select Issue</option>
+                    <option value="Power Outage">Power Outage</option>
+                    <option value="Low Voltage">Low Voltage</option>
+                    <option value="Sparking/Hazard">Sparking/Hazard</option>
+                    <option value="Meter Fault">Meter Fault</option>
+                    <option value="Transformer Issue">Transformer Issue</option>
+                    <option value="Billing Issue">Billing Issue</option>
+                  </select>
+                </div>
 
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Description *</label>
-              <textarea
-                rows={5}
-                value={form.description}
-                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                placeholder="Describe your issue in detail..."
-                required
-                className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 resize-vertical"
-              />
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Description *</label>
+                  <textarea
+                    rows={5}
+                    value={form.description}
+                    onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                    placeholder="Describe your issue in detail..."
+                    required
+                    className="w-full p-3 border border-border rounded-xl bg-white text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 resize-vertical"
+                  />
+                </div>
+
+                <div className={`col-span-2 flex items-center justify-between rounded-xl border px-4 py-3 transition-colors ${form.emergency ? 'bg-red-50 border-red-200' : 'bg-white border-border'}`}>
+                  <div>
+                    <p className={`text-sm font-bold ${form.emergency ? 'text-red-700' : 'text-text-secondary'}`}>Emergency Priority</p>
+                    <p className={`text-xs ${form.emergency ? 'text-red-600/80' : 'text-text-muted'}`}>Mark this if the complaint poses an immediate hazard.</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.emergency}
+                      onChange={(e) => setForm((p) => ({ ...p, emergency: e.target.checked }))}
+                      className="sr-only peer"
+                    />
+                    <span className="w-12 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-red-200 rounded-full peer peer-checked:bg-red-500 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border after:border-slate-200 after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:after:translate-x-5 peer-checked:after:border-white"></span>
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div className="col-span-2">

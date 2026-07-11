@@ -104,7 +104,6 @@ export interface CitizenComplaint {
   consumerName: string;
   phone: string;
   location: string | LocationData;
-  zone: string;
   issueType: string;
   address: string | StructuredAddress;
   addressType?: "RURAL" | "URBAN";
@@ -146,7 +145,6 @@ export interface CreateComplaintPayload {
   phone: string;
   consumerId: string;
   location?: string | LocationData;
-  zone?: string;
   issueType: string;
   address?: string | StructuredAddress;
   addressType?: "RURAL" | "URBAN";
@@ -178,7 +176,6 @@ export interface UserComplaint {
   citizenName: string;
   phone: string;
   location: string;
-  zone: string;
   issueType: string;
   description: string;
   emergency: boolean;

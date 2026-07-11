@@ -134,6 +134,7 @@ export default function Register() {
               />
             </div>
 
+
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">Consumer ID *</label>
               <input
@@ -161,13 +162,14 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Mobile Number</label>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Mobile Number *</label>
               <input
                 id="phone"
                 type="tel"
-                placeholder="+91 XXXXX XXXXX"
+                placeholder="10-digit mobile number"
                 value={form.phone}
-                onChange={handleChange}
+                onChange={(e) => setForm(p => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
+                maxLength={10}
                 className="w-full p-3 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                 required
               />

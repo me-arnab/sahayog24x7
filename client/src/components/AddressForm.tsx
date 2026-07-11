@@ -145,8 +145,13 @@ export function AddressForm({ onAddressChange }: AddressFormProps) {
   return (
     <div className="space-y-6 col-span-2 bg-slate-50 p-6 rounded-2xl border border-border">
       <div>
-        <h3 className="text-lg font-bold text-navy mb-4"><i className="fas fa-map-marker-alt text-primary mr-2"></i>Location Details</h3>
-        
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">2</div>
+          <h3 className="text-lg font-bold text-navy">Location of the Issue</h3>
+        </div>
+        <p className="text-sm text-text-muted mb-6">
+          We need the exact location of the issue to dispatch our field workers quickly. We highly recommend using the <span className="font-semibold text-primary">GPS button</span> if you are currently at the location.
+        </p>
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-2">Area Type *</label>

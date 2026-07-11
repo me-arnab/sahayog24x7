@@ -27,7 +27,6 @@ export default function AdminDashboard() {
   const [complaints, setComplaints] = useState<CitizenComplaint[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [zoneFilter, setZoneFilter] = useState("all");
   const [selectedComplaint, setSelectedComplaint] =
     useState<CitizenComplaint | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,10 +59,9 @@ export default function AdminDashboard() {
         c.description.toLowerCase().includes(search.toLowerCase()) ||
         c.location.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || c.status === statusFilter;
-      const matchZone = zoneFilter === "all" || c.zone === zoneFilter;
-      return matchSearch && matchStatus && matchZone;
+      return matchSearch && matchStatus;
     });
-  }, [complaints, search, statusFilter, zoneFilter]);
+  }, [complaints, search, statusFilter]);
 
   const stats: DashboardStats = useMemo(
     () => ({
@@ -83,7 +81,6 @@ export default function AdminDashboard() {
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("all");
-    setZoneFilter("all");
   };
 
   return (
@@ -147,21 +144,7 @@ export default function AdminDashboard() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Ward / Zone</label>
-                <select
-                  value={zoneFilter}
-                  onChange={(e) => setZoneFilter(e.target.value)}
-                  className="w-full p-2.5 border border-border rounded-xl bg-bg text-sm text-text-primary focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-                >
-                  <option value="all">All Zones</option>
-                  <option value="ward-1">Ward 1</option>
-                  <option value="ward-2">Ward 2</option>
-                  <option value="ward-3">Ward 3</option>
-                  <option value="ward-4">Ward 4</option>
-                  <option value="ward-5">Ward 5</option>
-                </select>
-              </div>
+
 
               <button
                 onClick={clearFilters}
