@@ -348,7 +348,7 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan">
                   <i className="fas fa-envelope"></i>
                 </div>
-                <span>info@sahayog.gov.in</span>
+                <span>info.sahayog24x7@gmail.com</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
