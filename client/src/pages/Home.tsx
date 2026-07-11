@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { submitContactMessage } from "../api/contact";
-import { toast } from "react-toastify";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import img1 from "../assets/1.png";
@@ -37,6 +36,15 @@ export default function Home() {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+
+  const notify = (message: string, type: "success" | "error" = "success") => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 4000);
+  };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,10 +52,13 @@ export default function Home() {
 
     try {
       await submitContactMessage(contactForm);
-      toast.success("Message sent successfully! We will get back to you soon.");
+      notify("Message sent successfully! We will get back to you soon.");
       setContactForm({ name: "", email: "", subject: "", message: "" });
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to send message. Please try again later.");
+      notify(
+        error.response?.data?.message || "Failed to send message. Please try again later.",
+        "error"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -110,6 +121,13 @@ export default function Home() {
         }
         .bolt-icon {
           animation: bolt-glow 2s ease-in-out infinite;
+        }
+        @keyframes slide-in {
+          from { transform: translateX(400px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.4s ease forwards;
         }
       `}</style>
 
@@ -402,6 +420,18 @@ export default function Home() {
       </section>
 
       <Footer />
+
+      {/* Notification Toast */}
+      {notification && (
+        <div
+          className={`fixed top-24 right-6 px-5 py-3.5 rounded-xl text-white font-semibold text-sm
+            shadow-lg z-[2000] max-w-[350px] animate-slide-in
+            ${notification.type === "success" ? "bg-success" : "bg-error"}`}
+        >
+          <i className={`fas ${notification.type === "success" ? "fa-check-circle" : "fa-times-circle"} mr-2`}></i>
+          {notification.message}
+        </div>
+      )}
     </div>
   );
 }
