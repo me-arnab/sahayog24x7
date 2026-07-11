@@ -45,6 +45,7 @@ export interface CitizenLoginCredentials {
 
 export interface LoginCredentials {
   employeeId: string;
+  identifier?: string;
   password: string;
 }
 

@@ -28,7 +28,8 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("worker");
-      if (window.location.pathname !== "/login") {
+      const currentPath = window.location.pathname;
+      if (currentPath !== "/login" && currentPath !== "/staff/login" && currentPath !== "/register") {
         window.location.href = "/login";
       }
     }
