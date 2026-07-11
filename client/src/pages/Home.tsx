@@ -134,7 +134,7 @@ export default function Home() {
       <Navbar />
 
     {/* Hero */}
-      <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-6 py-16 overflow-hidden">
+      <section id="hero" className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-6 py-16 overflow-hidden">
         {/* Layered gradient background */}
         <div className="absolute inset-0 bg-navy" />
         <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-primary/20 blur-[120px] animate-pulse-glow" />

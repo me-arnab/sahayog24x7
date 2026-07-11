@@ -12,10 +12,30 @@ export function Navbar() {
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
 
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, targetId: string) => {
+    e.preventDefault();
+    closeMenu();
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <header className="sticky top-4 z-50 mx-auto max-w-7xl w-full">
       <nav className="relative mx-4 px-6 py-3 flex items-center justify-between bg-white/70 backdrop-blur-xl border border-border rounded-2xl shadow-lg shadow-blue-500/5">
-        <Link to="/" className="flex items-center gap-3 no-underline" onClick={closeMenu}>
+        <Link
+          to="/"
+          className="flex items-center gap-3 no-underline"
+          onClick={(e) => {
+            if (isHome) {
+              e.preventDefault();
+              handleScroll(e, "hero");
+            } else {
+              closeMenu();
+            }
+          }}
+        >
           <img
             src={logo}
             className="w-10 h-10 rounded-lg"
@@ -45,7 +65,7 @@ export function Navbar() {
               <li>
                 <a
                   href="#service"
-                  onClick={closeMenu}
+                  onClick={(e) => handleScroll(e, "service")}
                   className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors block py-2 md:py-0"
                 >
                   Our Services
@@ -54,7 +74,7 @@ export function Navbar() {
               <li>
                 <a
                   href="#contact"
-                  onClick={closeMenu}
+                  onClick={(e) => handleScroll(e, "contact")}
                   className="no-underline text-text-secondary text-sm font-medium hover:text-primary transition-colors block py-2 md:py-0"
                 >
                   Contact Us
