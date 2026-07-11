@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { getAdminComplaints } from "../api/complaints";
-import type { CitizenComplaint, DashboardStats } from "../types";
+import { getContactMessages } from "../api/contact";
+import type { CitizenComplaint, DashboardStats, ContactMessage } from "../types";
 
 const statusBadge = (status: CitizenComplaint["status"]) => {
   const map: Record<string, string> = {
@@ -32,14 +33,21 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [activeTab, setActiveTab] = useState<"complaints" | "messages">("complaints");
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+
   const loadComplaints = useCallback(async () => {
     try {
       setIsLoading(true);
       setError("");
-      const data = await getAdminComplaints();
-      setComplaints(data);
+      const [complaintsData, messagesData] = await Promise.all([
+        getAdminComplaints(),
+        getContactMessages()
+      ]);
+      setComplaints(complaintsData);
+      setMessages(messagesData);
     } catch {
-      setError("Failed to load complaints");
+      setError("Failed to load data");
     } finally {
       setIsLoading(false);
     }
@@ -179,15 +187,29 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-4 bg-card border border-border rounded-2xl p-4 shadow-sm max-md:flex-col">
               <h2 className="text-lg font-bold text-navy whitespace-nowrap flex items-center gap-2">
                 <i className="fas fa-list-check text-primary"></i>
-                Complaints ({filtered.length})
+                Records
               </h2>
+              <div className="flex bg-bg p-1 rounded-xl">
+                <button
+                  onClick={() => setActiveTab("complaints")}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'complaints' ? 'bg-white text-primary shadow-sm' : 'text-text-muted hover:text-navy'}`}
+                >
+                  Complaints ({filtered.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab("messages")}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'messages' ? 'bg-white text-primary shadow-sm' : 'text-text-muted hover:text-navy'}`}
+                >
+                  Contact Messages ({messages.length})
+                </button>
+              </div>
               <div className="flex-1 relative">
                 <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-sm"></i>
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by ID, name, issue, location..."
+                  placeholder={activeTab === 'complaints' ? "Search complaints..." : "Search messages..."}
                   className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl bg-bg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                 />
               </div>
@@ -203,56 +225,86 @@ export default function AdminDashboard() {
               {isLoading ? (
                 <div className="text-center py-16 text-text-muted bg-card border border-border rounded-2xl">
                   <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3" />
-                  Loading complaints...
+                  Loading data...
                 </div>
-              ) : filtered.length === 0 ? (
-                <div className="text-center py-16 text-text-muted bg-card border border-border rounded-2xl">
-                  <i className="fas fa-search text-3xl mb-3 block opacity-30"></i>
-                  No complaints found matching your filters
-                </div>
-              ) : (
-                filtered.map((c) => (
-                  <div
-                    key={c._id}
-                    onClick={() => setSelectedComplaint(c)}
-                    className={`bg-card border rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/5
-                      ${c.status === "COMPLETED" || c.status === "resolved" ? "border-green-200 bg-green-50/30" : "border-border"}
-                      ${c.emergency ? "ring-1 ring-red-200" : ""}`}
-                  >
-                    <div className="flex gap-4 max-md:flex-col">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                        {c.complaintId.slice(-3)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                          <span className="font-semibold text-navy text-sm">{c.issueType}</span>
-                          <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${emergencyBadge(c.emergency)}`}>
-                            {c.emergency ? "Emergency" : "Normal"}
-                          </span>
-                          <span className={statusBadge(c.status)}>{c.status.replace("_", " ")}</span>
+              ) : activeTab === 'complaints' ? (
+                filtered.length === 0 ? (
+                  <div className="text-center py-16 text-text-muted bg-card border border-border rounded-2xl">
+                    <i className="fas fa-search text-3xl mb-3 block opacity-30"></i>
+                    No complaints found matching your filters
+                  </div>
+                ) : (
+                  filtered.map((c) => (
+                    <div
+                      key={c._id}
+                      onClick={() => setSelectedComplaint(c)}
+                      className={`bg-card border rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/5
+                        ${c.status === "COMPLETED" || c.status === "resolved" ? "border-green-200 bg-green-50/30" : "border-border"}
+                        ${c.emergency ? "ring-1 ring-red-200" : ""}`}
+                    >
+                      <div className="flex gap-4 max-md:flex-col">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                          {c.complaintId.slice(-3)}
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-text-muted mb-2 flex-wrap">
-                          <span><i className="fas fa-user mr-1"></i>{c.consumerName}</span>
-                          <span><i className="fas fa-map-marker-alt mr-1"></i>{c.location || c.address}</span>
-                          <span>{c.complaintId}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                            <span className="font-semibold text-navy text-sm">{c.issueType}</span>
+                            <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${emergencyBadge(c.emergency)}`}>
+                              {c.emergency ? "Emergency" : "Normal"}
+                            </span>
+                            <span className={statusBadge(c.status)}>{c.status.replace("_", " ")}</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-text-muted mb-2 flex-wrap">
+                            <span><i className="fas fa-user mr-1"></i>{c.consumerName}</span>
+                            <span><i className="fas fa-map-marker-alt mr-1"></i>{c.location || c.address}</span>
+                            <span>{c.complaintId}</span>
+                          </div>
+                          <p className="text-sm text-text-secondary leading-relaxed line-clamp-2">{c.description}</p>
                         </div>
-                        <p className="text-sm text-text-secondary leading-relaxed line-clamp-2">{c.description}</p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0 max-md:self-end">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedComplaint(c);
-                          }}
-                          className="px-4 py-2 rounded-xl text-xs font-semibold border border-border text-text-secondary
-                            hover:border-primary hover:text-primary hover:bg-primary/5 transition-all cursor-pointer"
-                        >
-                          View
-                        </button>
+                        <div className="flex items-center gap-2 flex-shrink-0 max-md:self-end">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedComplaint(c);
+                            }}
+                            className="px-4 py-2 rounded-xl text-xs font-semibold border border-border text-text-secondary
+                              hover:border-primary hover:text-primary hover:bg-primary/5 transition-all cursor-pointer"
+                          >
+                            View
+                          </button>
+                        </div>
                       </div>
                     </div>
+                  ))
+                )
+              ) : (
+                messages.filter(m => !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.subject.toLowerCase().includes(search.toLowerCase()) || m.message.toLowerCase().includes(search.toLowerCase())).length === 0 ? (
+                  <div className="text-center py-16 text-text-muted bg-card border border-border rounded-2xl">
+                    <i className="fas fa-envelope text-3xl mb-3 block opacity-30"></i>
+                    No messages found
                   </div>
-                ))
+                ) : (
+                  messages
+                    .filter(m => !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.subject.toLowerCase().includes(search.toLowerCase()) || m.message.toLowerCase().includes(search.toLowerCase()))
+                    .map((m) => (
+                      <div key={m._id} className="bg-card border border-border rounded-2xl p-5 transition-all hover:shadow-md">
+                        <div className="flex justify-between items-start gap-4 mb-3">
+                          <div>
+                            <h4 className="font-bold text-navy">{m.subject}</h4>
+                            <div className="text-xs text-text-muted mt-1">
+                              <span className="font-semibold">{m.name}</span> • <a href={`mailto:${m.email}`} className="text-primary hover:underline">{m.email}</a> • {new Date(m.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${m.status === 'unread' ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-600'}`}>
+                            {m.status}
+                          </span>
+                        </div>
+                        <div className="bg-bg rounded-xl p-4 text-sm text-text-secondary leading-relaxed border border-border/50">
+                          {m.message}
+                        </div>
+                      </div>
+                  ))
+                )
               )}
             </div>
           </div>

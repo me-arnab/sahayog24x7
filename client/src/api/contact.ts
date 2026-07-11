@@ -9,3 +9,8 @@ export const submitContactMessage = async (data: {
   const response = await apiClient.post("/contact/submit", data);
   return response.data;
 };
+
+export const getContactMessages = async () => {
+  const response = await apiClient.get("/contact");
+  return response.data;
+};

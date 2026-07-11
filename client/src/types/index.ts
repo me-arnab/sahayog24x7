@@ -195,3 +195,15 @@ export interface DashboardStats {
   inProgress: number;
   assigned: number;
 }
+
+// ─── Contact Messages ───
+export interface ContactMessage {
+  _id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: "unread" | "read" | "resolved";
+  createdAt: string;
+  updatedAt: string;
+}

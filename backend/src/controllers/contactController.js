@@ -35,3 +35,20 @@ exports.submitMessage = async (req, res) => {
     });
   }
 };
+
+// @desc    Get all contact us messages
+// @route   GET /api/contact
+// @access  Private/Admin
+exports.getMessages = async (req, res) => {
+  try {
+    const messages = await ContactMessage.find().sort({ createdAt: -1 });
+
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error("Error in getMessages:", error);
+    res.status(500).json({
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
