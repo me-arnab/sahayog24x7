@@ -342,7 +342,7 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   <i className="fas fa-phone"></i>
                 </div>
-                <span>+91 1234567890</span>
+                <span>+91 9513886363</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan">
