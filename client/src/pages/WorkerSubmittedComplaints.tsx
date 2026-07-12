@@ -7,21 +7,25 @@ export default function WorkerSubmittedComplaints() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedComplaint, setSelectedComplaint] = useState<CitizenComplaint | null>(null);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (showLoading = true) => {
     try {
-      setIsLoading(true);
+      if (showLoading) setIsLoading(true);
       const data = await getAssignedComplaints();
       const submitted = data.filter((c) => ["PENDING_APPROVAL", "COMPLETED", "resolved"].includes(c.status));
       setComplaints(submitted);
     } catch (err) {
       console.error("Failed to load submitted complaints", err);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 10000);
+    return () => clearInterval(interval);
   }, [loadData]);
 
   const handleViewDetail = async (id: string) => {

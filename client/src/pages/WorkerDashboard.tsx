@@ -52,9 +52,9 @@ export default function WorkerDashboard() {
     return fallback;
   };
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (showLoading = true) => {
     try {
-      setIsLoading(true);
+      if (showLoading) setIsLoading(true);
       const [compData, noticeData] = await Promise.all([
         getAssignedComplaints(),
         getConsumerNotices(),
@@ -63,9 +63,9 @@ export default function WorkerDashboard() {
       setComplaints(activeComplaints);
       setNotices(noticeData.filter((n) => n.audience === "Worker"));
     } catch {
-      notify("Failed to load data", "error");
+      if (showLoading) notify("Failed to load data", "error");
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, [notify]);
 
@@ -76,6 +76,10 @@ export default function WorkerDashboard() {
     }
     if (worker) {
       loadData();
+      const interval = setInterval(() => {
+        loadData(false);
+      }, 10000);
+      return () => clearInterval(interval);
     }
   }, [authLoading, worker, navigate, loadData]);
 
@@ -109,8 +113,8 @@ export default function WorkerDashboard() {
     }
   };
 
-  const handleReportSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleReportSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!selectedComplaint) return;
 
     setIsSubmitting(true);
@@ -125,8 +129,10 @@ export default function WorkerDashboard() {
 
       const result = await submitWorkReport(formData);
       notify(result.message || "Work report submitted successfully");
+      setShowConfirmModal(false);
       setShowReportModal(false);
       setReportForm({ workPerformed: "", conditionAfter: "", photo: null });
+      setSelectedComplaint((prev) => prev ? { ...prev, status: "PENDING_APPROVAL" as any } : null);
       loadData();
     } catch (error) {
       notify(getApiErrorMessage(error, "Failed to submit report"), "error");
@@ -455,7 +461,7 @@ export default function WorkerDashboard() {
               </button>
             </div>
 
-            <form onSubmit={handleReportSubmit} className="p-6 space-y-5">
+            <form onSubmit={(e) => { e.preventDefault(); setShowConfirmModal(true); }} className="p-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">Work Performed *</label>
                 <textarea
@@ -519,6 +525,67 @@ export default function WorkerDashboard() {
       )}
 
 
+
+      {showConfirmModal && (
+        <div
+          className="fixed inset-0 bg-navy/70 backdrop-blur-sm z-[60] flex items-center justify-center p-5"
+          onClick={() => !isSubmitting && setShowConfirmModal(false)}
+        >
+          <div
+            className="bg-card rounded-2xl max-w-[460px] w-full shadow-2xl border border-border overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-border">
+              <h3 className="text-lg font-bold text-navy flex items-center gap-2">
+                <i className="fas fa-circle-check text-success"></i> Confirm Submission
+              </h3>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-text-secondary leading-relaxed">
+                Please confirm that the work report is complete. Once submitted, the complaint will be marked as completed and the uploaded image will be saved.
+              </p>
+
+              <div className="bg-bg rounded-xl border border-border p-4 text-sm space-y-2">
+                <div>
+                  <span className="text-text-muted">Complaint: </span>
+                  <span className="font-semibold text-navy">{selectedComplaint?.complaintId}</span>
+                </div>
+                <div>
+                  <span className="text-text-muted">Image: </span>
+                  <span className="font-semibold text-navy">{reportForm.photo?.name || "No file selected"}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-border flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                disabled={isSubmitting}
+                className="flex-1 bg-white border border-border text-text-secondary py-3 rounded-xl font-semibold text-sm cursor-pointer hover:border-primary hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleReportSubmit()}
+                disabled={isSubmitting}
+                className="flex-1 bg-success text-white py-3 rounded-xl font-semibold text-sm cursor-pointer shadow-md shadow-green-500/20 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                    Submitting...
+                  </span>
+                ) : (
+                  <span><i className="fas fa-paper-plane mr-1.5"></i> Confirm & Submit</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Notification Toast */}
       {notification && (

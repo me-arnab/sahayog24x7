@@ -34,10 +34,10 @@ export default function AdminComplaints() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (showLoading = true) => {
     try {
-      setIsLoading(true);
-      setError("");
+      if (showLoading) setIsLoading(true);
+      if (showLoading) setError("");
       const [compData, workersData] = await Promise.all([
         getAdminComplaints(),
         getWorkers(),
@@ -45,9 +45,9 @@ export default function AdminComplaints() {
       setComplaints(compData);
       setWorkers(workersData);
     } catch {
-      setError("Failed to load data");
+      if (showLoading) setError("Failed to load data");
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, []);
 
@@ -84,6 +84,10 @@ export default function AdminComplaints() {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 10000);
+    return () => clearInterval(interval);
   }, [loadData]);
 
   const filtered = useMemo(() => {

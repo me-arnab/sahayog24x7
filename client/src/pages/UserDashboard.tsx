@@ -51,6 +51,7 @@ export default function UserDashboard() {
     type: "success" | "error";
   } | null>(null);
   const [form, setForm] = useState(getInitialForm(citizen));
+  const [selectedComplaint, setSelectedComplaint] = useState<CitizenComplaint | null>(null);
   
   // New address state
   const [addressData, setAddressData] = useState<{
@@ -73,9 +74,9 @@ export default function UserDashboard() {
     []
   );
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (showLoading = true) => {
     try {
-      setIsLoading(true);
+      if (showLoading) setIsLoading(true);
       const [compData, noticeData] = await Promise.all([
         getMyComplaints(),
         getConsumerNotices(),
@@ -89,9 +90,9 @@ export default function UserDashboard() {
         sessionStorage.setItem("citizen_notice_shown", "true");
       }
     } catch {
-      notify("Failed to load data", "error");
+      if (showLoading) notify("Failed to load data", "error");
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, [notify]);
 
@@ -103,6 +104,10 @@ export default function UserDashboard() {
     if (citizen) {
       setForm(getInitialForm(citizen));
       loadData();
+      const interval = setInterval(() => {
+        loadData(false);
+      }, 10000);
+      return () => clearInterval(interval);
     }
   }, [authLoading, citizen, loadData, navigate]);
 
@@ -275,6 +280,14 @@ export default function UserDashboard() {
                       <p className="text-sm text-text-secondary leading-relaxed line-clamp-1">
                         {c.description}
                       </p>
+                    </div>
+                    <div className="flex items-center shrink-0">
+                      <button 
+                        onClick={() => setSelectedComplaint(c)}
+                        className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap"
+                      >
+                        View Details
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -485,6 +498,96 @@ export default function UserDashboard() {
           </form>
         </div>
       </div>
+      
+      {/* Complaint Detail Modal */}
+      {selectedComplaint && (
+        <div
+          className="fixed inset-0 bg-navy/60 backdrop-blur-sm z-[150] flex items-center justify-center p-5 animate-fade-in"
+          onClick={() => setSelectedComplaint(null)}
+        >
+          <div
+            className="bg-card rounded-2xl max-w-[600px] w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <h3 className="text-lg font-bold text-navy flex items-center gap-2">
+                <i className="fas fa-file-alt text-primary"></i>
+                Complaint Details
+              </h3>
+              <button
+                onClick={() => setSelectedComplaint(null)}
+                className="text-2xl text-text-muted hover:text-navy transition-colors bg-transparent border-none cursor-pointer leading-none"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-xs text-text-muted uppercase font-bold tracking-wider mb-1">Complaint ID</p>
+                  <p className="font-semibold text-navy">{selectedComplaint.complaintId}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-text-muted uppercase font-bold tracking-wider mb-1">Status</p>
+                  <span
+                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide border ${
+                      selectedComplaint.status === "ASSIGNED"
+                        ? "bg-amber-50 text-amber-700 border-amber-200"
+                        : selectedComplaint.status === "IN_PROGRESS"
+                        ? "bg-blue-50 text-blue-700 border-blue-200"
+                        : selectedComplaint.status === "PENDING_APPROVAL"
+                        ? "bg-purple-50 text-purple-700 border-purple-200"
+                        : selectedComplaint.status === "COMPLETED" || selectedComplaint.status === "resolved"
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : "bg-slate-50 text-slate-600 border-slate-200"
+                    }`}
+                  >
+                    {selectedComplaint.status.replace("_", " ")}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-xs text-text-muted uppercase font-bold tracking-wider mb-1">Issue Type</p>
+                  <p className="font-semibold text-navy">{selectedComplaint.issueType}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-text-muted uppercase font-bold tracking-wider mb-1">Priority</p>
+                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${emergencyBadge(selectedComplaint.emergency)}`}>
+                    {selectedComplaint.emergency ? "Emergency" : "Normal"}
+                  </span>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-xs text-text-muted uppercase font-bold tracking-wider mb-1">Location</p>
+                  <p className="text-navy">
+                    {typeof selectedComplaint.address === 'object' && selectedComplaint.address !== null 
+                      ? selectedComplaint.address.district || selectedComplaint.address.road 
+                      : selectedComplaint.address || (typeof selectedComplaint.location === 'object' ? "" : String(selectedComplaint.location || "N/A"))}
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-xs text-text-muted uppercase font-bold tracking-wider mb-1">Description</p>
+                  <p className="bg-slate-50 p-4 rounded-xl text-text-secondary border border-border whitespace-pre-wrap">
+                    {selectedComplaint.description}
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-xs text-text-muted uppercase font-bold tracking-wider mb-1">Submitted Date</p>
+                  <p className="text-navy">{new Date(selectedComplaint.createdAt).toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-border flex justify-end">
+              <button
+                onClick={() => setSelectedComplaint(null)}
+                className="bg-bg border border-border text-text-secondary px-6 py-2 rounded-xl font-semibold text-sm cursor-pointer hover:bg-slate-50 transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Notice Popup Modal */}
       {showNoticePopup && notices.length > 0 && (
         <div

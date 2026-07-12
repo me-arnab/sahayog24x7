@@ -11,16 +11,16 @@ export default function AdminWorkReports() {
   const [search, setSearch] = useState("");
   const [selectedReport, setSelectedReport] = useState<WorkReport | null>(null);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (showLoading = true) => {
     try {
-      setIsLoading(true);
-      setError("");
+      if (showLoading) setIsLoading(true);
+      if (showLoading) setError("");
       const data = await getWorkReports();
       setReports(data);
     } catch {
-      setError("Failed to load work reports");
+      if (showLoading) setError("Failed to load work reports");
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, []);
 
@@ -46,6 +46,10 @@ export default function AdminWorkReports() {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 10000);
+    return () => clearInterval(interval);
   }, [loadData]);
 
   const filtered = useMemo(() => {
