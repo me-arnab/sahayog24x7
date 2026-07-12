@@ -203,7 +203,7 @@ export default function AdminWorkReports() {
             </div>
 
             {/* Content Side */}
-            <div className="w-full md:w-1/2 flex flex-col h-full bg-card">
+            <div className="w-full md:w-1/2 flex flex-col max-h-[90vh] bg-card">
               <div className="p-6 border-b border-border flex justify-between items-center hidden md:flex shrink-0">
                 <h3 className="text-lg font-bold text-navy flex items-center gap-2">
                   <i className="fas fa-clipboard-check text-primary"></i> Work Report
@@ -216,7 +216,7 @@ export default function AdminWorkReports() {
                 </button>
               </div>
 
-              <div className="p-6 space-y-6 overflow-y-auto flex-1">
+              <div className="p-6 space-y-6 overflow-y-auto flex-1 min-h-0">
                 {/* Worker Info */}
                 <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-bg to-bg/50 rounded-xl border border-border">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent-cyan flex items-center justify-center text-white font-bold text-xl shadow-inner">

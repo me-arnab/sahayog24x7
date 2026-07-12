@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { login, loginCitizen, register, seedWorker, getWorkers, seedAdmin, getAdmins } = require("../controllers/authController");
-const { login, loginCitizen, register, seedWorker, forgotPassword, verifyOtp, resetPassword } = require("../controllers/authController");
+const { forgotPassword, verifyOtp, resetPassword } = require("../controllers/authController");
 
 router.post("/register", register);
 router.post("/login-citizen", loginCitizen);
