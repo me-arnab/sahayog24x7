@@ -60,7 +60,7 @@ export default function AdminWorkReports() {
         r.complaintId?.complaintId?.toLowerCase().includes(lower) ||
         r.workerId?.name?.toLowerCase().includes(lower) ||
         r.complaintId?.issueType?.toLowerCase().includes(lower) ||
-        (typeof r.complaintId === 'string' && r.complaintId.toLowerCase().includes(lower))
+        (typeof r.complaintId === 'string' && String(r.complaintId).toLowerCase().includes(lower))
     );
   }, [reports, search]);
 
@@ -86,7 +86,7 @@ export default function AdminWorkReports() {
               />
             </div>
             <button
-              onClick={loadData}
+              onClick={() => loadData()}
               className="px-4 py-2.5 bg-bg border border-border rounded-xl text-sm font-semibold text-text-secondary hover:text-primary hover:border-primary transition-all cursor-pointer flex items-center gap-2 shadow-sm"
             >
               <i className="fas fa-sync-alt"></i> Refresh

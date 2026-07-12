@@ -168,7 +168,7 @@ export default function AdminComplaints() {
             </div>
 
             <button
-              onClick={loadData}
+              onClick={() => loadData()}
               className="mt-6 w-full py-2.5 border border-border rounded-xl text-sm font-semibold text-text-secondary hover:border-primary hover:text-primary hover:bg-primary/5 transition-all cursor-pointer"
             >
               <i className="fas fa-sync-alt mr-1.5"></i> Refresh

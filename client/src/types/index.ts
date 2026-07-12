@@ -195,4 +195,5 @@ export interface DashboardStats {
   resolved: number;
   inProgress: number;
   assigned: number;
+  pendingApproval: number;
 }

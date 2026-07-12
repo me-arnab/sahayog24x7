@@ -58,7 +58,7 @@ export default function WorkerSubmittedComplaints() {
               Submission History
             </h2>
             <button
-              onClick={loadData}
+              onClick={() => loadData()}
               className="border border-border text-text-secondary px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
             >
               <i className="fas fa-sync-alt mr-1.5"></i> Refresh
