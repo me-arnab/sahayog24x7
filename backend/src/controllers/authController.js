@@ -515,22 +515,25 @@ exports.login = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+    const inputEmail = req.body.email || req.body.identifier;
+    if (!inputEmail) {
+      return res.status(400).json({ message: "Email or Consumer ID is required" });
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedEmail = String(inputEmail).trim().toLowerCase();
+    const trimmedIdentifier = String(inputEmail).trim();
     let user;
 
     if (!isMongoReady()) {
-      user = await fallbackFindUser({ email: normalizedEmail });
+      user = await fallbackFindUser({ email: normalizedEmail, consumerId: trimmedIdentifier });
     } else {
-      user = await User.findOne({ email: normalizedEmail });
+      user = await User.findOne({
+        $or: [{ email: normalizedEmail }, { consumerId: trimmedIdentifier }],
+      });
     }
 
     if (!user) {
-      return res.status(404).json({ message: "User with this email does not exist" });
+      return res.status(404).json({ message: "User with this email/Consumer ID does not exist" });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -540,7 +543,8 @@ exports.forgotPassword = async (req, res) => {
     if (!isMongoReady()) {
       user.otp = hashedOtp;
       user.otpExpires = otpExpires;
-      fallbackUsers.set(normalizedEmail, user);
+      fallbackUsers.set(user.email, user);
+      fallbackUsers.set(user.consumerId, user);
     } else {
       user.otp = hashedOtp;
       user.otpExpires = otpExpires;
@@ -552,73 +556,95 @@ exports.forgotPassword = async (req, res) => {
       const emailUser = process.env.EMAIL_USER;
       const emailPass = process.env.EMAIL_PASS;
 
-      if (emailUser && emailPass) {
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: emailUser,
-            pass: emailPass,
-          },
-        });
-
-        const mailOptions = {
-          from: `"Sahayog24x7 Support" <${emailUser}>`,
-          to: user.email,
-          subject: "Forgot Password OTP Verification",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
-              <h2 style="color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; margin-top: 0;">Password Reset Request</h2>
-              <p style="color: #475569; font-size: 14px;">Hello ${user.name},</p>
-              <p style="color: #475569; font-size: 14px;">We received a request to reset your password. Use the verification code below to proceed:</p>
-              <div style="margin: 25px 0; text-align: center;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #3b82f6; background-color: #f1f5f9; padding: 10px 24px; border-radius: 8px; border: 1px solid #cbd5e1; display: inline-block;">${otp}</span>
-              </div>
-              <p style="color: #ef4444; font-size: 13px; font-weight: 500;">This code will expire in 5 minutes. If you did not make this request, you can safely ignore this email.</p>
-              <p style="font-size: 11px; color: #94a3b8; margin-top: 25px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-                This message was sent automatically from the Sahayog24x7 Auth System.
-              </p>
-            </div>
-          `,
-        };
-
-        await transporter.sendMail(mailOptions);
-        console.log(`OTP email sent successfully to ${user.email}`);
-      } else {
+      console.log("--- [OTP Email Sending Process Start] ---");
+      console.log("Step 1: Checking email configuration in environment variables...");
+      if (!emailUser || !emailPass) {
+        const missingErr = new Error("EMAIL_USER or EMAIL_PASS environment variables are not defined. Check your .env file or host environment settings.");
         console.warn("=== [Forgot Password OTP Fallback] ===");
         console.warn(`Email: ${user.email}`);
         console.warn(`Generated OTP: ${otp}`);
         console.warn("======================================");
+        throw missingErr;
       }
+      console.log(`EMAIL_USER is set to: "${emailUser}". Password is configured (length: ${emailPass.length}).`);
+
+      console.log("Step 2: Initializing Nodemailer transporter with Gmail service configuration...");
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: emailUser,
+          pass: emailPass,
+        },
+      });
+
+      console.log("Step 3: Verifying SMTP transporter connection configuration...");
+      try {
+        await transporter.verify();
+        console.log("OTP Transporter verification successful. Connection is ready.");
+      } catch (verifyError) {
+        console.error("OTP Transporter verification failed:", verifyError);
+        throw new Error(`SMTP connection verification failed: ${verifyError.message}`);
+      }
+
+      const mailOptions = {
+        from: `"Sahayog24x7 Support" <${emailUser}>`,
+        to: user.email,
+        subject: "Forgot Password OTP Verification",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+            <h2 style="color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; margin-top: 0;">Password Reset Request</h2>
+            <p style="color: #475569; font-size: 14px;">Hello ${user.name},</p>
+            <p style="color: #475569; font-size: 14px;">We received a request to reset your password. Use the verification code below to proceed:</p>
+            <div style="margin: 25px 0; text-align: center;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #3b82f6; background-color: #f1f5f9; padding: 10px 24px; border-radius: 8px; border: 1px solid #cbd5e1; display: inline-block;">${otp}</span>
+            </div>
+            <p style="color: #ef4444; font-size: 13px; font-weight: 500;">This code will expire in 5 minutes. If you did not make this request, you can safely ignore this email.</p>
+            <p style="font-size: 11px; color: #94a3b8; margin-top: 25px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+              This message was sent automatically from the Sahayog24x7 Auth System.
+            </p>
+          </div>
+        `,
+      };
+
+      console.log(`Step 4: Dispatching OTP email to user: "${user.email}"...`);
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`Step 5: OTP email sent successfully. Message ID: ${info.messageId}`);
+      console.log("--- [OTP Email Sending Process End (Success)] ---");
     } catch (mailError) {
-      console.error("Failed to send OTP email:", mailError.message);
-      // We print to console, but don't fail the request so it can fallback to console during dev
+      console.error("--- [OTP Email Sending Process End (Failed)] ---");
+      console.error("Failed to send OTP email:", mailError);
+      throw new Error(`Failed to send OTP email: ${mailError.message}`);
     }
 
     res.json({ message: "OTP sent successfully to your email." });
   } catch (error) {
     console.error("Forgot password error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message || "Server error" });
   }
 };
 
 exports.verifyOtp = async (req, res) => {
   try {
-    const { email, otp } = req.body;
-    if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP are required" });
+    const { otp } = req.body;
+    const inputEmail = req.body.email || req.body.identifier;
+    if (!inputEmail || !otp) {
+      return res.status(400).json({ message: "Email/Consumer ID and OTP are required" });
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedEmail = String(inputEmail).trim().toLowerCase();
+    const trimmedIdentifier = String(inputEmail).trim();
     let user;
 
     if (!isMongoReady()) {
-      user = await fallbackFindUser({ email: normalizedEmail });
+      user = await fallbackFindUser({ email: normalizedEmail, consumerId: trimmedIdentifier });
     } else {
-      user = await User.findOne({ email: normalizedEmail });
+      user = await User.findOne({
+        $or: [{ email: normalizedEmail }, { consumerId: trimmedIdentifier }],
+      });
     }
 
     if (!user) {
-      return res.status(404).json({ message: "User with this email does not exist" });
+      return res.status(404).json({ message: "User with this email/Consumer ID does not exist" });
     }
 
     if (!user.otp || !user.otpExpires) {
@@ -637,32 +663,36 @@ exports.verifyOtp = async (req, res) => {
     res.json({ message: "OTP verified successfully" });
   } catch (error) {
     console.error("Verify OTP error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message || "Server error" });
   }
 };
 
 exports.resetPassword = async (req, res) => {
   try {
-    const { email, otp, password } = req.body;
-    if (!email || !otp || !password) {
-      return res.status(400).json({ message: "Email, OTP and password are required" });
+    const { otp, password } = req.body;
+    const inputEmail = req.body.email || req.body.identifier;
+    if (!inputEmail || !otp || !password) {
+      return res.status(400).json({ message: "Email/Consumer ID, OTP and password are required" });
     }
 
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters long" });
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedEmail = String(inputEmail).trim().toLowerCase();
+    const trimmedIdentifier = String(inputEmail).trim();
     let user;
 
     if (!isMongoReady()) {
-      user = await fallbackFindUser({ email: normalizedEmail });
+      user = await fallbackFindUser({ email: normalizedEmail, consumerId: trimmedIdentifier });
     } else {
-      user = await User.findOne({ email: normalizedEmail });
+      user = await User.findOne({
+        $or: [{ email: normalizedEmail }, { consumerId: trimmedIdentifier }],
+      });
     }
 
     if (!user) {
-      return res.status(404).json({ message: "User with this email does not exist" });
+      return res.status(404).json({ message: "User with this email/Consumer ID does not exist" });
     }
 
     if (!user.otp || !user.otpExpires) {
@@ -685,7 +715,8 @@ exports.resetPassword = async (req, res) => {
       user.password = hashedPassword;
       user.otp = null;
       user.otpExpires = null;
-      fallbackUsers.set(normalizedEmail, user);
+      fallbackUsers.set(user.email, user);
+      fallbackUsers.set(user.consumerId, user);
     } else {
       user.password = hashedPassword;
       user.otp = null;
@@ -696,6 +727,6 @@ exports.resetPassword = async (req, res) => {
     res.json({ message: "Password reset successfully. You can now login with your new password." });
   } catch (error) {
     console.error("Reset password error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message || "Server error" });
   }
 };
