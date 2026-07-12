@@ -34,10 +34,10 @@ export default function AdminDashboard() {
 
   const [workers, setWorkers] = useState<any[]>([]);
 
-  const loadComplaints = useCallback(async () => {
+  const loadComplaints = useCallback(async (showLoading = true) => {
     try {
-      setIsLoading(true);
-      setError("");
+      if (showLoading) setIsLoading(true);
+      if (showLoading) setError("");
       const [data, workersData] = await Promise.all([
         getAdminComplaints(),
         getWorkers(),
@@ -45,14 +45,18 @@ export default function AdminDashboard() {
       setComplaints(data);
       setWorkers(workersData);
     } catch {
-      setError("Failed to load complaints");
+      if (showLoading) setError("Failed to load complaints");
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
     loadComplaints();
+    const interval = setInterval(() => {
+      loadComplaints(false);
+    }, 10000);
+    return () => clearInterval(interval);
   }, [loadComplaints]);
 
   const filtered = useMemo(() => {
