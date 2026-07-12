@@ -7,6 +7,7 @@ router.post("/register", register);
 router.post("/login-citizen", loginCitizen);
 router.post("/login", login);
 router.post("/seed-worker", seedWorker);
+router.post("/seed", seedWorker);
 router.get("/workers", getWorkers);
 router.post("/seed-admin", seedAdmin);
 router.get("/admins", getAdmins);

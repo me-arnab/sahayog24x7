@@ -120,7 +120,7 @@ exports.register = async (req, res) => {
       });
 
       const token = jwt.sign(
-        { id: user._id, email: user.email, role: user.role },
+        { id: user._id, email: user.email, role: user.role, accountType: "user" },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }
       );
@@ -159,7 +159,7 @@ exports.register = async (req, res) => {
     });
 
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
+      { id: user._id, email: user.email, role: user.role, accountType: "user" },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
@@ -200,7 +200,7 @@ exports.register = async (req, res) => {
       });
 
       const token = jwt.sign(
-        { id: user._id, email: user.email, role: user.role },
+        { id: user._id, email: user.email, role: user.role, accountType: "user" },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }
       );

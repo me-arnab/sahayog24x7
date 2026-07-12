@@ -7,6 +7,11 @@
 const http = require("http");
 const path = require("path");
 const fs = require("fs");
+const dns = require("node:dns");
+
+// Prefer IPv4 and use public DNS to avoid Windows DNS SRV issues
+dns.setDefaultResultOrder("ipv4first");
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const BASE = "http://localhost:5000";
 const results = [];
@@ -79,6 +84,18 @@ function assert(condition, msg) {
 async function run() {
   console.log("\n🧪 Sahayog24x7 API Test Suite\n");
   console.log(`Server: ${BASE}\n`);
+
+  // Clear existing test workers from prior interrupted runs
+  try {
+    const mongoose = require("mongoose");
+    const uri = process.env.MONGODB_URI || "mongodb+srv://arnabme2005_db_user:Qlaf2UNT6RQ2iKBy@complains.quakjti.mongodb.net/?appName=Complains";
+    await mongoose.connect(uri);
+    const Worker = mongoose.models.Worker || mongoose.model("Worker", new mongoose.Schema({ employeeId: String }));
+    await Worker.deleteMany({ employeeId: { $in: ["WB001", "WB002"] } });
+    await mongoose.connection.close();
+  } catch (e) {
+    console.warn("⚠️ Setup cleanup warning:", e.message);
+  }
 
   // ── Test 1: Health Check ──
   await test("1. Health Check", async () => {
@@ -314,10 +331,10 @@ async function run() {
   // Cleanup test workers
   try {
     const mongoose = require("mongoose");
-    // Use same URI as .env — fallback to localhost if not set
-    const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/sahayog24x7";
+    const uri = process.env.MONGODB_URI || "mongodb+srv://arnabme2005_db_user:Qlaf2UNT6RQ2iKBy@complains.quakjti.mongodb.net/?appName=Complains";
     await mongoose.connect(uri);
-    await mongoose.connection.db.collection("workers").deleteMany({ employeeId: { $in: ["WB001", "WB002"] } });
+    const Worker = mongoose.models.Worker || mongoose.model("Worker", new mongoose.Schema({ employeeId: String }));
+    await Worker.deleteMany({ employeeId: { $in: ["WB001", "WB002"] } });
     await mongoose.connection.close();
   } catch {}
 

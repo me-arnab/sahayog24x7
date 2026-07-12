@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { getWorkReports, approveWorkReport, rejectWorkReport, type WorkReport } from "../api/workReport";
 import apiClient from "../api/client";
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "") : "";
 
 export default function AdminWorkReports() {
   const [reports, setReports] = useState<WorkReport[]>([]);
