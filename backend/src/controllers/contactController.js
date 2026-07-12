@@ -1,5 +1,5 @@
 const ContactMessage = require("../models/ContactMessage");
-const nodemailer = require("nodemailer");
+const sendEmail = require("../utils/sendEmail");
 
 // @desc    Submit a contact us message
 // @route   POST /api/contact/submit
@@ -25,42 +25,7 @@ exports.submitMessage = async (req, res) => {
     // Send email to admin
     try {
       const emailUser = process.env.EMAIL_USER;
-      const emailPass = process.env.EMAIL_PASS;
-
-      console.log("--- [Email Sending Process Start] ---");
-      console.log("Step 1: Checking email configuration in environment variables...");
-      if (!emailUser || !emailPass) {
-        const missingErr = new Error("EMAIL_USER or EMAIL_PASS environment variables are not defined. Check your .env file or host environment settings.");
-        console.warn("=== [Nodemailer Config Missing] ===");
-        console.warn(missingErr.message);
-        console.warn(`Forward destination: info.sahayog24x7@gmail.com`);
-        console.warn(`Sender Name: ${name}`);
-        console.warn(`Sender Email: ${email}`);
-        console.warn(`Subject: ${subject}`);
-        console.warn("==================================");
-        throw missingErr;
-      }
-      console.log(`EMAIL_USER is set to: "${emailUser}". Password is configured (length: ${emailPass.length}).`);
-
-      console.log("Step 2: Initializing Nodemailer transporter with Gmail service configuration...");
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: emailUser,
-          pass: emailPass,
-        },
-      });
-
-      console.log("Step 3: Verifying SMTP transporter connection configuration...");
-      try {
-        await transporter.verify();
-        console.log("Transporter verification successful. Connection is ready.");
-      } catch (verifyError) {
-        console.error("Transporter verification failed:", verifyError);
-        throw new Error(`SMTP connection verification failed: ${verifyError.message}`);
-      }
-
-      const mailOptions = {
+      await sendEmail({
         from: `"Sahayog24x7 Contact Portal" <${emailUser}>`,
         to: "info.sahayog24x7@gmail.com",
         replyTo: email.trim(),
@@ -93,14 +58,8 @@ exports.submitMessage = async (req, res) => {
             </p>
           </div>
         `,
-      };
-
-      console.log(`Step 4: Dispatching contact email to info.sahayog24x7@gmail.com with subject: "${mailOptions.subject}"...`);
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`Step 5: Email sent successfully. Message ID: ${info.messageId}`);
-      console.log("--- [Email Sending Process End (Success)] ---");
+      });
     } catch (mailError) {
-      console.error("--- [Email Sending Process End (Failed)] ---");
       console.error("Failed to forward contact form email to admin:", mailError);
       throw new Error(`Email dispatch failed: ${mailError.message}`);
     }
