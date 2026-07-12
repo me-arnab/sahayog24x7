@@ -53,7 +53,6 @@ export default function UserDashboard() {
   const [form, setForm] = useState(getInitialForm(citizen));
   const [selectedComplaint, setSelectedComplaint] = useState<CitizenComplaint | null>(null);
   
-  // New address state
   const [addressData, setAddressData] = useState<{
     addressType: "RURAL" | "URBAN";
     locationMethod: "GPS" | "MANUAL";
@@ -65,6 +64,15 @@ export default function UserDashboard() {
     location: undefined,
     address: {},
   });
+
+  const handleAddressChange = useCallback((
+    type: "RURAL" | "URBAN",
+    method: "GPS" | "MANUAL",
+    loc: LocationData | undefined,
+    addr: StructuredAddress
+  ) => {
+    setAddressData({ addressType: type, locationMethod: method, location: loc, address: addr });
+  }, []);
 
   const notify = useCallback(
     (message: string, type: "success" | "error" = "success") => {
@@ -411,9 +419,7 @@ export default function UserDashboard() {
             </div>
 
             <AddressForm 
-              onAddressChange={(type, method, loc, addr) => 
-                setAddressData({ addressType: type, locationMethod: method, location: loc, address: addr })
-              }
+              onAddressChange={handleAddressChange}
             />
 
             {/* Step 3: Complaint Details */}
